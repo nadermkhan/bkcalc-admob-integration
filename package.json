@@ -17,18 +17,18 @@
   "author": "Bkcalc",
   "license": "ISC",
   "dependencies": {
-    "admob-plus-cordova": "2.0.0-alpha.19"
+    "emi-indo-cordova-plugin-admob": "3.0.1"
   },
   "devDependencies": {
     "cordova": "^12.0.0",
-    "cordova-android": "^13.0.0"
+    "cordova-android": "^14.0.1"
   },
   "cordova": {
     "platforms": [
       "android"
     ],
     "plugins": {
-      "admob-plus-cordova": {
+      "emi-indo-cordova-plugin-admob": {
         "APP_ID_ANDROID": "ca-app-pub-3139819978975551~3021247751"
       }
     }

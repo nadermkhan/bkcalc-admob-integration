@@ -18,7 +18,7 @@ env:
   NODE_VERSION: '18'
   ANDROID_BUILD_TOOLS_VERSION: '35.0.0'
   ANDROID_PLATFORM_VERSION: '35'
-  CORDOVA_ANDROID_VERSION: '13.0.0'
+  CORDOVA_ANDROID_VERSION: '14.0.1'
 
 jobs:
   build:
@@ -71,9 +71,6 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
-      - name: Patch admob-plus-cordova start() to avoid init hang
-        run: python3 scripts/patch-admob-plus.py
-
       - name: Remove existing Android platform
         run: cordova platform remove android || true
 
@@ -89,8 +86,8 @@ jobs:
             "COMPILE_SDK_VERSION": 35,
             "TARGET_SDK_VERSION": 35,
             "BUILD_TOOLS_VERSION": "35.0.0",
-            "AGP_VERSION": "8.3.0",
-            "KOTLIN_VERSION": "1.9.22"
+            "AGP_VERSION": "8.7.2",
+            "KOTLIN_VERSION": "1.9.24"
           }
           EOF
           echo "Created cdv-gradle-config.json"
