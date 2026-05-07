@@ -71,6 +71,9 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Patch admob-plus-cordova start() to avoid init hang
+        run: python3 scripts/patch-admob-plus.py
+
       - name: Remove existing Android platform
         run: cordova platform remove android || true
 
