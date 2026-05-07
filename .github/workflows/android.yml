@@ -161,7 +161,7 @@ jobs:
       - name: Build Release APK (Signed)
         env:
           GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
-        run: cordova build android --release --buildConfig=build.json
+        run: cordova build android --release --buildConfig=build.json -- --packageType=apk
 
       - name: Build Release AAB (Signed)
         env:
