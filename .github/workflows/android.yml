@@ -1,0 +1,246 @@
+name: Build Android Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '18'
+  ANDROID_BUILD_TOOLS_VERSION: '35.0.0'
+  ANDROID_PLATFORM_VERSION: '35'
+  CORDOVA_ANDROID_VERSION: '13.0.0'
+
+jobs:
+  build:
+    name: Build Android APK & AAB
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-${{ env.ANDROID_PLATFORM_VERSION }}"
+          sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Remove existing Android platform
+        run: cordova platform remove android || true
+
+      - name: Add Android platform
+        run: cordova platform add android@${{ env.CORDOVA_ANDROID_VERSION }}
+
+      - name: Create cdv-gradle-config.json
+        run: |
+          mkdir -p platforms/android
+          cat > platforms/android/cdv-gradle-config.json << 'EOF'
+          {
+            "MIN_SDK_VERSION": 24,
+            "COMPILE_SDK_VERSION": 35,
+            "TARGET_SDK_VERSION": 35,
+            "BUILD_TOOLS_VERSION": "35.0.0",
+            "AGP_VERSION": "8.3.0",
+            "KOTLIN_VERSION": "1.9.22"
+          }
+          EOF
+          echo "Created cdv-gradle-config.json"
+
+      - name: Check for signing configuration
+        id: check_signing
+        run: |
+          if [ -n "${{ secrets.BKCALC_KEYSTORE_BASE64 }}" ]; then
+            echo "has_keystore=true" >> $GITHUB_OUTPUT
+            echo "Keystore found"
+          else
+            echo "has_keystore=false" >> $GITHUB_OUTPUT
+            echo "No keystore found"
+          fi
+
+      - name: Decode Keystore
+        if: steps.check_signing.outputs.has_keystore == 'true'
+        run: |
+          echo "${{ secrets.BKCALC_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/bkcalc-upload-key.jks
+          echo "Keystore decoded successfully"
+
+      - name: Create build.json for signing
+        if: steps.check_signing.outputs.has_keystore == 'true'
+        run: |
+          cat > build.json << EOF
+          {
+            "android": {
+              "release": {
+                "keystore": "${{ github.workspace }}/bkcalc-upload-key.jks",
+                "storePassword": "${{ secrets.BKCALC_KEYSTORE_PASSWORD }}",
+                "alias": "${{ secrets.BKCALC_KEY_ALIAS }}",
+                "password": "${{ secrets.BKCALC_KEY_PASSWORD }}",
+                "keystoreType": "jks"
+              }
+            }
+          }
+          EOF
+          echo "Created build.json"
+
+      - name: Build Release APK (Signed)
+        if: steps.check_signing.outputs.has_keystore == 'true'
+        env:
+          GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
+        run: cordova build android --release --buildConfig=build.json
+
+      - name: Build Release AAB (Signed)
+        if: steps.check_signing.outputs.has_keystore == 'true'
+        env:
+          GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
+        run: cordova build android --release --buildConfig=build.json -- --packageType=bundle
+
+      - name: Build Release APK (Unsigned)
+        if: steps.check_signing.outputs.has_keystore == 'false'
+        env:
+          GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
+        run: cordova build android --release
+
+      - name: Build Release AAB (Unsigned)
+        if: steps.check_signing.outputs.has_keystore == 'false'
+        env:
+          GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
+        run: cordova build android --release -- --packageType=bundle
+
+      - name: Get App Version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'version="\K[^"]+' config.xml | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "App Version: $VERSION"
+
+      - name: Prepare build artifacts
+        run: |
+          mkdir -p build-output
+
+          echo "Searching APK and AAB files..."
+          find platforms/android -name "*.apk" -type f 2>/dev/null || true
+          find platforms/android -name "*.aab" -type f 2>/dev/null || true
+
+          APK_PATH=$(find platforms/android -name "*release*.apk" -type f 2>/dev/null | head -1)
+          AAB_PATH=$(find platforms/android -name "*release*.aab" -type f 2>/dev/null | head -1)
+
+          [ -f "$APK_PATH" ] && cp "$APK_PATH" "build-output/app-release-${{ steps.version.outputs.version }}.apk"
+          [ -f "$AAB_PATH" ] && cp "$AAB_PATH" "build-output/app-release-${{ steps.version.outputs.version }}.aab"
+
+          ls -la build-output/ || true
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-${{ steps.version.outputs.version }}
+          path: build-output/*
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -f bkcalc-upload-key.jks
+          rm -f build.json
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+          else
+            VERSION="${{ needs.build.outputs.version }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Generate release tag
+        id: release_tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v${{ steps.get_version.outputs.version }}-build.${{ github.run_number }}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Release tag: $TAG"
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release-${{ needs.build.outputs.version }}
+          path: release-assets
+
+      - name: List release assets
+        run: |
+          ls -la release-assets/ || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.get_version.outputs.version }} (Build ${{ github.run_number }})
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

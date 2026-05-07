@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>WhatsApp Calc</title>
+  <meta name="theme-color" content="#f5f7fb" id="themeColorMeta" />
+
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("calc_theme") || "theme-light";
+      document.documentElement.classList.add(savedTheme);
+      document.documentElement.style.backgroundColor =
+        savedTheme === "theme-dark" ? "#000000" : "#f5f7fb";
+    })();
+
+    
+  </script>
+  <link rel="stylesheet" href="css/index.css" />
+  <script src="js/math.min.js"></script>
+  <script src="js/index.js" defer></script>
+  <script src="js/nader-ads.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <button class="icon-btn" id="menuBtn">☰</button>
+
+      <div class="title-wrap">
+        <a class="page-btn" href="whatsApp.html">WhatsApp Calc</a>
+      </div>
+
+      <div class="header-placeholder"></div>
+
+      <div class="menu-dropdown" id="menuDropdown">
+        <button class="menu-item" id="themeToggleBtn">Dark Mode</button>
+      </div>
+    </div>
+
+    <div class="display">
+      <div class="expression-wrap">
+        <div id="exprView" class="expression-view"></div>
+      </div>
+
+      <div class="result-box">
+        <div class="result-copy" id="copyResultBtn" title="Copy total">
+          <div id="result" class="result">0</div>
+          <span class="copy-icon">⧉</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="action-left sci-open-btn" id="actionScientificBtn" title="Scientific functions">ƒx</button>
+      <div class="action-center" id="powerBtn">^</div>
+      <div class="backspace" id="backspaceBtn">⌫</div>
+    </div>
+
+    <div class="grid">
+      <button class="btn clear" data-action="clear">C</button>
+      <button class="btn operator soft" data-action="bracket">()</button>
+      <button class="btn operator soft" data-action="percent">%</button>
+      <button class="btn operator" data-insert="÷">÷</button>
+
+      <button class="btn" data-insert="7">7</button>
+      <button class="btn" data-insert="8">8</button>
+      <button class="btn" data-insert="9">9</button>
+      <button class="btn operator" data-insert="×">×</button>
+
+      <button class="btn" data-insert="4">4</button>
+      <button class="btn" data-insert="5">5</button>
+      <button class="btn" data-insert="6">6</button>
+      <button class="btn operator" data-insert="−">−</button>
+
+      <button class="btn" data-insert="1">1</button>
+      <button class="btn" data-insert="2">2</button>
+      <button class="btn" data-insert="3">3</button>
+      <button class="btn operator" data-insert="+">+</button>
+
+      <button class="btn" data-insert="0">0</button>
+      <button class="btn" data-insert="00">00</button>
+      <button class="btn" data-action="dot">.</button>
+      <button class="btn equals" data-action="equals">=</button>
+    </div>
+
+    <div class="banner">
+      Banner Ad Space
+      <div class="gear">⚙️</div>
+    </div>
+
+    <div class="toast" id="toast">Copied</div>
+  </div>
+
+  <div class="sci-overlay" id="sciOverlay"></div>
+
+  <div class="sci-drawer" id="sciDrawer">
+    <div class="sci-header">
+      <div class="sci-title">Scientific</div>
+      <button class="sci-close" id="closeSciBtn">✕</button>
+    </div>
+
+    <div class="sci-topbar">
+      <button class="sci-toggle-btn" id="invToggleBtn">INV</button>
+      <button class="sci-toggle-btn" id="angleToggleBtn">DEG</button>
+    </div>
+
+    <div class="sci-grid">
+      <button class="sci-btn" data-normal="sin(" data-inv="asin(">sin</button>
+      <button class="sci-btn" data-normal="cos(" data-inv="acos(">cos</button>
+      <button class="sci-btn" data-normal="tan(" data-inv="atan(">tan</button>
+      <button class="sci-btn" data-normal="π" data-inv="e">π</button>
+
+      <button class="sci-btn" data-normal="ln(" data-inv="exp(">ln</button>
+      <button class="sci-btn" data-normal="log(" data-inv="pow10(">log</button>
+      <button class="sci-btn" data-normal="√(" data-inv="∛(">√</button>
+      <button class="sci-btn" data-normal="^" data-inv="^">xʸ</button>
+
+      <button class="sci-btn" data-normal="(" data-inv="(">( )</button>
+      <button class="sci-btn" data-normal="abs(" data-inv="1/abs(">abs</button>
+      <button class="sci-btn" data-normal="1/" data-inv="1/">1/x</button>
+      <button class="sci-btn" data-normal="%" data-inv="%">%</button>
+
+      <button class="sci-btn" data-normal="sinh(" data-inv="asinh(">sinh</button>
+      <button class="sci-btn" data-normal="cosh(" data-inv="acosh(">cosh</button>
+      <button class="sci-btn" data-normal="tanh(" data-inv="atanh(">tanh</button>
+      <button class="sci-btn" data-normal="!" data-inv="!">x!</button>
+
+      <button class="sci-btn" data-normal="sq(" data-inv="cube(">x²</button>
+      <button class="sci-btn" data-normal="00" data-inv="00">00</button>
+      <button class="sci-btn sci-wide" id="drawerCloseBottom">Close</button>
+    </div>
+  </div>
+</body>
+</html>

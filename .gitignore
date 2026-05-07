@@ -1,0 +1,11 @@
+node_modules/
+platforms/
+plugins/
+build.json
+android.keystore
+*.jks
+*.keystore
+.gradle/
+.idea/
+dist/
+build/
