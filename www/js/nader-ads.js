@@ -37,19 +37,47 @@ document.addEventListener('deviceready', async function () {
       });
     }
 
-    setBannerStatus('AdMob: starting SDK...');
-    await admob.start();
+    setBannerStatus('AdMob: starting SDK (10s timeout)...');
+    var startTimedOut = false;
+    try {
+      await Promise.race([
+        admob.start(),
+        new Promise(function (_, reject) {
+          setTimeout(function () {
+            startTimedOut = true;
+            reject(new Error('admob.start() timed out after 10s'));
+          }, 10000);
+        })
+      ]);
+      setBannerStatus('AdMob: SDK started, creating banner...');
+    } catch (e) {
+      // start() can hang on emulators without Google Play Services. Continue
+      // and let banner.show() try anyway — sometimes it still loads ads.
+      setBannerStatus('AdMob: start() ' + (startTimedOut ? 'timed out' : 'failed') + ', trying banner anyway: ' + ((e && e.message) || e));
+    }
 
-    setBannerStatus('AdMob: SDK started, creating banner...');
     var banner = new admob.BannerAd({
       // Google's official test banner unit. Swap for the real unit before release.
       adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       position: 'bottom',
     });
 
-    setBannerStatus('AdMob: calling banner.show()...');
-    await banner.show();
-    setBannerStatus('AdMob: banner.show() resolved, waiting for ad...');
+    setBannerStatus('AdMob: calling banner.show() (15s timeout)...');
+    var showTimedOut = false;
+    try {
+      await Promise.race([
+        banner.show(),
+        new Promise(function (_, reject) {
+          setTimeout(function () {
+            showTimedOut = true;
+            reject(new Error('banner.show() timed out after 15s'));
+          }, 15000);
+        })
+      ]);
+      setBannerStatus('AdMob: banner.show() resolved, waiting for load event...');
+    } catch (e) {
+      setBannerStatus('AdMob: banner.show() ' + (showTimedOut ? 'timed out' : 'failed') + ': ' + ((e && e.message) || e));
+    }
   } catch (err) {
     var msg = 'AdMob: error';
     if (err && err.message) {
