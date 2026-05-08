@@ -89,7 +89,7 @@ body{
     minmax(150px, 1fr)
     clamp(48px, 7dvh, 58px)
     minmax(300px, 43dvh)
-    clamp(54px, 7.5dvh, 64px);
+    /*clamp(54px, 7.5dvh, 64px);*/
   overflow:hidden;
   padding-top:var(--safe-top);
   padding-bottom:var(--safe-bottom);
@@ -659,8 +659,8 @@ body{
       48px
       minmax(128px, 1fr)
       46px
-      minmax(270px, 44dvh)
-      52px;
+      minmax(270px, 44dvh);
+     /* 52px;*/
   }
 
   .result{
