@@ -80,8 +80,9 @@ body{
 .app{
   width:100%;
   max-width:520px;
-  height:100vh;
-  height:100dvh;
+  /* height:100vh;
+  height:100dvh; */
+  height:100%; /*Patched by Nader Mahbub Khan*/
   background:var(--bg);
   display:grid;
   grid-template-rows:
@@ -92,7 +93,7 @@ body{
     /*clamp(54px, 7.5dvh, 64px);*/
   overflow:hidden;
   padding-top:var(--safe-top);
-  padding-bottom:var(--safe-bottom);
+  /* padding-bottom:var(--safe-bottom); */
   position:relative;
 }
 
