@@ -27,7 +27,7 @@
         size: 'BANNER',
         collapsible: false,
         autoShow: true,
-        isOverlapping: false,
+        isOverlapping: true,
       });
     } catch (e) {
       log('loadBannerAd threw: ' + ((e && e.message) || e));
