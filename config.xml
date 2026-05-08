@@ -27,6 +27,9 @@
         <preference name="android-targetSdkVersion" value="35" />
         <preference name="android-compileSdkVersion" value="35" />
         <preference name="Fullscreen" value="false" />
+        <preference name="GradlePluginKotlinEnabled" value="true" />
+        <preference name="GradlePluginKotlinVersion" value="2.1.20" />
+        <preference name="GradlePluginKotlinCodeStyle" value="official" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/icon/android/playstore.png" />
         <preference name="AndroidWindowSplashScreenBackground" value="#ffffff" />
       <icon src="www/m-logo.png" />       
