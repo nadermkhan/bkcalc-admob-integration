@@ -21,7 +21,9 @@
   },
   "devDependencies": {
     "cordova": "^12.0.0",
-    "cordova-android": "^14.0.1"
+    "cordova-android": "^14.0.1",
+    "cordova-plugin-navigationbar-color": "^0.1.0",
+    "cordova-plugin-statusbar": "^4.0.0"
   },
   "cordova": {
     "platforms": [
@@ -30,7 +32,9 @@
     "plugins": {
       "emi-indo-cordova-plugin-admob": {
         "APP_ID_ANDROID": "ca-app-pub-3139819978975551~3021247751"
-      }
+      },
+      "cordova-plugin-navigationbar-color": {},
+      "cordova-plugin-statusbar": {}
     }
   }
 }

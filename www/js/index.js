@@ -959,6 +959,25 @@ function finalAnswer() {
 /* ===============================
    THEME
 ================================*/
+// function setTheme(theme, save = true) {
+//   document.documentElement.classList.remove("theme-dark", "theme-light");
+//   document.documentElement.classList.add(theme);
+
+//   if (save) localStorage.setItem("calc_theme", theme);
+
+//   if (themeToggleBtn) {
+//     themeToggleBtn.textContent = theme === "theme-dark" ? "Light Mode" : "Dark Mode";
+//   }
+
+//   const themeColor = theme === "theme-dark" ? "#000000" : "#f5f7fb";
+//   const meta = document.getElementById("themeColorMeta");
+//   if (meta) meta.setAttribute("content", themeColor);
+
+//   document.documentElement.style.backgroundColor = themeColor;
+//   document.body.style.backgroundColor = themeColor;
+// }
+
+//System aware theme toggle by Nader Mahbub Khan
 function setTheme(theme, save = true) {
   document.documentElement.classList.remove("theme-dark", "theme-light");
   document.documentElement.classList.add(theme);
@@ -975,6 +994,22 @@ function setTheme(theme, save = true) {
 
   document.documentElement.style.backgroundColor = themeColor;
   document.body.style.backgroundColor = themeColor;
+
+  //magic by nader mahbub khan to set system bars color according to theme
+  if (window.StatusBar) {
+    StatusBar.backgroundColorByHexString(themeColor);
+    if (theme === "theme-dark") {
+      StatusBar.styleLightContent(); // Light text for dark backgrounds
+    } else {
+      StatusBar.styleDefault();      // Dark text for light backgrounds
+    }
+  }
+
+  if (window.NavigationBar) {
+    const isLightMode = theme !== "theme-dark";
+    // The second parameter 'isLightMode' tells Android to use dark icons on the navigation bar
+    NavigationBar.backgroundColorByHexString(themeColor, isLightMode); 
+  }
 }
 
 function toggleTheme() {
