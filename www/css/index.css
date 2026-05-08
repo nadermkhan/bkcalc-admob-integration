@@ -94,6 +94,7 @@ body{
   overflow:hidden;
   padding-top:var(--safe-top);
   /* padding-bottom:var(--safe-bottom); */
+  padding-bottom: calc(50px + var(--safe-bottom));
   position:relative;
 }
 
