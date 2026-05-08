@@ -24,7 +24,7 @@
       plugin.loadBannerAd({
         adUnitId: TEST_BANNER_AD_UNIT_ID,
         position: 'bottom-center',
-        size: 'adaptive',
+        size: 'BANNER',
         collapsible: false,
         autoShow: true,
         isOverlapping: false,
