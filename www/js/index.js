@@ -1033,12 +1033,12 @@ function haptic() {
    EVENTS
 ================================*/
 copyResultBtn?.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
+  // e.preventDefault();
   haptic();
   copyResult();
 });
 
-copyResultBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
+// copyResultBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
 
 menuBtn?.addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -1107,15 +1107,15 @@ document.addEventListener("pointerdown", (e) => {
   }
 });
 
-document.addEventListener("contextmenu", (e) => {
-  if (result?.contains(e.target) || copyResultBtn?.contains(e.target)) {
-    e.preventDefault();
-  }
-});
+// document.addEventListener("contextmenu", (e) => {
+//   if (result?.contains(e.target) || copyResultBtn?.contains(e.target)) {
+//     e.preventDefault();
+//   }
+// });
 
 exprView?.addEventListener("pointerdown", (e) => {
   if (e.pointerType === "mouse") {
-    e.preventDefault();
+    // e.preventDefault();
     setCursorFromPoint(e);
     return;
   }

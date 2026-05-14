@@ -352,9 +352,9 @@ html.theme-dark .header .icon-btn{
   width:100%;
   min-width:0;
   touch-action:manipulation;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
+  user-select:text;
+  -webkit-user-select:text;
+  -webkit-touch-callout:default;
 }
 
 .result{
@@ -369,9 +369,9 @@ html.theme-dark .header .icon-btn{
   color:var(--text);
   overflow:hidden;
   text-overflow:clip;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
+  user-select:text;
+  -webkit-user-select:text;
+  -webkit-touch-callout:default;
 }
 
 .copy-icon{
