@@ -308,6 +308,20 @@ html.theme-dark .header .icon-btn{
   white-space:nowrap;
 }
 
+.custom-caret{
+  display:inline-block;
+  width:0;
+  border-left:2px solid var(--text);
+  height:0.85em;
+  vertical-align:-0.05em;
+  margin:0 1px;
+  animation:caret-blink 1s steps(2,start) infinite;
+}
+
+@keyframes caret-blink{
+  to{ border-color:transparent; }
+}
+
 
 
 .result-box{

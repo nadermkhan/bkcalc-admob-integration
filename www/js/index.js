@@ -17,6 +17,7 @@ const invToggleBtn = document.getElementById("invToggleBtn");
 const angleToggleBtn = document.getElementById("angleToggleBtn");
 
 let expression = localStorage.getItem("calc_expression_live") || "";
+let cursorPos = expression.length;
 let lastValidResult = "0";
 let toastTimer = null;
 
@@ -171,21 +172,50 @@ function tokenizeExpression(value) {
   return tokens;
 }
 
+function caretSpan() {
+  return `<span class="custom-caret" data-caret="1"></span>`;
+}
+
+function tokenSpan(token, start, end, text) {
+  const isOp = /[+\-×÷]/.test(token.text);
+  const cls = isOp ? ' class="operator-token"' : '';
+  return `<span${cls} data-start="${start}" data-end="${end}">${escapeHtml(text)}</span>`;
+}
+
 function buildExpressionHTML() {
   const tokens = tokenizeExpression(expression);
 
+  if (cursorPos < 0) cursorPos = 0;
+  if (cursorPos > expression.length) cursorPos = expression.length;
+
   if (tokens.length === 0) {
-    return `<div class="expr-line">&#8203;</div>`;
+    return `<div class="expr-line">${caretSpan()}&#8203;</div>`;
   }
 
   let html = "";
+  let caretInserted = false;
+
   for (const token of tokens) {
-    if (/[+\-×÷]/.test(token.text)) {
-      html += `<span class="operator-token">${escapeHtml(token.text)}</span>`;
-    } else {
-      html += `<span>${escapeHtml(token.text)}</span>`;
+    if (!caretInserted && cursorPos > token.start && cursorPos < token.end) {
+      const offset = cursorPos - token.start;
+      const left = token.text.slice(0, offset);
+      const right = token.text.slice(offset);
+      html += tokenSpan(token, token.start, cursorPos, left);
+      html += caretSpan();
+      html += tokenSpan(token, cursorPos, token.end, right);
+      caretInserted = true;
+      continue;
     }
+
+    if (!caretInserted && cursorPos <= token.start) {
+      html += caretSpan();
+      caretInserted = true;
+    }
+
+    html += tokenSpan(token, token.start, token.end, token.text);
   }
+
+  if (!caretInserted) html += caretSpan();
 
   return `<div class="expr-line">${html}</div>`;
 }
@@ -202,27 +232,74 @@ function fitExpressionText() {
   }
 }
 
-// NEW: Function to restore the blinking cursor at the end of the text
 function moveCursorToEnd() {
-  if (!exprView) return;
-  exprView.focus(); // Keep focus alive
-  if (typeof window.getSelection !== "undefined" && typeof document.createRange !== "undefined") {
-    const range = document.createRange();
-    range.selectNodeContents(exprView);
-    range.collapse(false); // false collapses the range to the end
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+  cursorPos = expression.length;
+}
+
+function clampCursor() {
+  if (cursorPos < 0) cursorPos = 0;
+  if (cursorPos > expression.length) cursorPos = expression.length;
+}
+
+function clearNativeSelection() {
+  const sel = window.getSelection && window.getSelection();
+  if (sel && sel.removeAllRanges) sel.removeAllRanges();
+}
+
+function nodeOffsetToCharIndex(node, offset) {
+  if (!node) return null;
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    const span = node.parentElement;
+    if (span && span.dataset && span.dataset.start !== undefined) {
+      const start = parseInt(span.dataset.start, 10);
+      return start + offset;
+    }
+    return null;
   }
+
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.dataset && node.dataset.start !== undefined) {
+      const start = parseInt(node.dataset.start, 10);
+      const end = parseInt(node.dataset.end, 10);
+      if (offset <= 0) return start;
+      return end;
+    }
+
+    const spans = node.querySelectorAll('span[data-start]');
+    if (spans.length === 0) return 0;
+    if (offset >= spans.length) {
+      return parseInt(spans[spans.length - 1].dataset.end, 10);
+    }
+    return parseInt(spans[offset].dataset.start, 10);
+  }
+
+  return null;
+}
+
+function getSelectedRange() {
+  if (!exprView) return null;
+  const sel = window.getSelection && window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  const range = sel.getRangeAt(0);
+  if (!exprView.contains(range.startContainer) || !exprView.contains(range.endContainer)) {
+    return null;
+  }
+  const startIdx = nodeOffsetToCharIndex(range.startContainer, range.startOffset);
+  const endIdx = nodeOffsetToCharIndex(range.endContainer, range.endOffset);
+  if (startIdx === null || endIdx === null) return null;
+  const lo = Math.max(0, Math.min(startIdx, endIdx));
+  const hi = Math.min(expression.length, Math.max(startIdx, endIdx));
+  if (hi <= lo) return null;
+  return { start: lo, end: hi };
 }
 
 function renderExpression(mode = "preserve") {
   if (!exprView) return;
   const previousScrollTop = exprView.scrollTop;
+  clampCursor();
   fitExpressionText();
   exprView.innerHTML = buildExpressionHTML();
-  
-  moveCursorToEnd(); // Re-apply the cursor after we wipe the innerHTML
 
   setTimeout(() => {
     exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight + 100 : previousScrollTop;
@@ -270,28 +347,46 @@ function setResultText(value) {
 /* ===============================
    INSERT / DELETE
 ================================*/
-function clearIfSelected() {
-  const selection = window.getSelection();
-  if (selection.toString().trim().length > 0) {
-    expression = "";
-    selection.removeAllRanges();
-  }
+const MULTI_CHAR_TOKENS = [
+  "asinh(", "acosh(", "atanh(",
+  "asin(", "acos(", "atan(",
+  "sinh(", "cosh(", "tanh(",
+  "sin(", "cos(", "tan(",
+  "pow10(", "cube(", "log(",
+  "abs(", "exp(", "ln(", "sq(",
+  "√(", "∛("
+];
+
+function replaceRange(start, end, replacement) {
+  expression = expression.slice(0, start) + replacement + expression.slice(end);
+  cursorPos = start + replacement.length;
 }
 
 function insertAtCursor(text) {
-  clearIfSelected();
-  expression += text;
+  const sel = getSelectedRange();
+  if (sel) {
+    replaceRange(sel.start, sel.end, text);
+    clearNativeSelection();
+  } else {
+    replaceRange(cursorPos, cursorPos, text);
+  }
   renderAfterEdit();
 }
 
 function insertOperator(op) {
-  if (!expression) {
+  const sel = getSelectedRange();
+  if (sel) {
+    insertAtCursor(op);
+    return;
+  }
+
+  if (cursorPos === 0) {
     if (op === "−") insertAtCursor("−");
     return;
   }
-  const prev = expression.slice(-1);
+  const prev = expression[cursorPos - 1];
   if (isOperator(prev)) {
-    expression = expression.slice(0, -1) + op;
+    replaceRange(cursorPos - 1, cursorPos, op);
     renderAfterEdit();
     return;
   }
@@ -300,15 +395,21 @@ function insertOperator(op) {
 }
 
 function getCurrentNumberSegmentLeft() {
-  const match = expression.match(/(?:^|[+\−×÷^%(,])(\d*\.?\d*)$/);
+  const beforeCursor = expression.slice(0, cursorPos);
+  const match = beforeCursor.match(/(?:^|[+\−×÷^%(,])(\d*\.?\d*)$/);
   return match ? match[1] : "";
 }
 
 function insertDot() {
-  const prev = expression.slice(-1);
+  const sel = getSelectedRange();
+  if (sel) {
+    insertAtCursor(".");
+    return;
+  }
+  const prev = cursorPos > 0 ? expression[cursorPos - 1] : "";
   const currentNum = getCurrentNumberSegmentLeft();
   if (currentNum.includes(".")) return;
-  if (!expression || isOperator(prev) || prev === "(" || prev === "%" || prev === ",") {
+  if (!prev || isOperator(prev) || prev === "(" || prev === "%" || prev === ",") {
     insertAtCursor("0.");
     return;
   }
@@ -317,17 +418,28 @@ function insertDot() {
 }
 
 function insertPercent() {
-  const prev = expression.slice(-1);
+  const sel = getSelectedRange();
+  if (sel) {
+    insertAtCursor("%");
+    return;
+  }
+  const prev = cursorPos > 0 ? expression[cursorPos - 1] : "";
   if (!prev || isOperator(prev) || prev === "(" || prev === "." || prev === "%" || prev === ",") return;
   insertAtCursor("%");
 }
 
 function smartBracket() {
-  const open = (expression.match(/\(/g) || []).length;
-  const close = (expression.match(/\)/g) || []).length;
-  const prev = expression.slice(-1);
+  const sel = getSelectedRange();
+  if (sel) {
+    insertAtCursor("(");
+    return;
+  }
+  const beforeCursor = expression.slice(0, cursorPos);
+  const open = (beforeCursor.match(/\(/g) || []).length;
+  const close = (beforeCursor.match(/\)/g) || []).length;
+  const prev = cursorPos > 0 ? beforeCursor[beforeCursor.length - 1] : "";
 
-  if (!expression || isOperator(prev) || prev === "(" || prev === ",") {
+  if (!beforeCursor || isOperator(prev) || prev === "(" || prev === ",") {
     insertAtCursor("(");
   } else if (open > close && !isOperator(prev) && prev !== "(") {
     insertAtCursor(")");
@@ -337,32 +449,33 @@ function smartBracket() {
 }
 
 function backspaceAtCursor() {
-  if (expression.length === 0) return;
+  const sel = getSelectedRange();
+  if (sel) {
+    replaceRange(sel.start, sel.end, "");
+    clearNativeSelection();
+    renderAfterEdit();
+    return;
+  }
 
-  const multiCharTokens = [
-    "asinh(", "acosh(", "atanh(",
-    "asin(", "acos(", "atan(",
-    "sinh(", "cosh(", "tanh(",
-    "sin(", "cos(", "tan(",
-    "pow10(", "cube(", "log(",
-    "abs(", "exp(", "ln(", "sq(",
-    "√(", "∛(", "0"
-  ];
+  if (cursorPos === 0) return;
 
-  for (const token of multiCharTokens) {
-    if (expression.endsWith(token)) {
-      expression = expression.slice(0, -token.length);
+  const before = expression.slice(0, cursorPos);
+  for (const token of MULTI_CHAR_TOKENS) {
+    if (before.endsWith(token)) {
+      replaceRange(cursorPos - token.length, cursorPos, "");
       renderAfterEdit();
       return;
     }
   }
 
-  expression = expression.slice(0, -1);
+  replaceRange(cursorPos - 1, cursorPos, "");
   renderAfterEdit();
 }
 
 function clearAll() {
   expression = "";
+  cursorPos = 0;
+  clearNativeSelection();
   if (result) {
     result.textContent = "0";
     result.classList.remove("error");
@@ -376,13 +489,22 @@ function clearAll() {
    OPERAND WRAP
 ================================*/
 function wrapCurrentOperand(prefix, suffix = ")") {
-  if (!expression) {
+  const sel = getSelectedRange();
+  if (sel) {
+    const target = expression.slice(sel.start, sel.end);
+    replaceRange(sel.start, sel.end, prefix + target + suffix);
+    clearNativeSelection();
+    renderAfterEdit();
+    return;
+  }
+
+  if (cursorPos === 0) {
     insertAtCursor(prefix + suffix);
     return;
   }
 
-  let index = expression.length;
-  if (index > 0 && expression[index - 1] === ")") {
+  let index = cursorPos;
+  if (expression[index - 1] === ")") {
     let depth = 0;
     for (let i = index - 1; i >= 0; i--) {
       if (expression[i] === ")") depth++;
@@ -392,7 +514,7 @@ function wrapCurrentOperand(prefix, suffix = ")") {
           let start = i;
           while (start > 0 && /[a-zA-Z√∛]/.test(expression[start - 1])) start--;
           const target = expression.slice(start, index);
-          expression = expression.slice(0, start) + prefix + target + suffix;
+          replaceRange(start, index, prefix + target + suffix);
           renderAfterEdit();
           return;
         }
@@ -413,7 +535,7 @@ function wrapCurrentOperand(prefix, suffix = ")") {
   }
 
   const target = expression.slice(start, index);
-  expression = expression.slice(0, start) + prefix + target + suffix;
+  replaceRange(start, index, prefix + target + suffix);
   renderAfterEdit();
 }
 
@@ -824,6 +946,7 @@ function finalAnswer() {
 
   setTimeout(() => {
     expression = String(out);
+    cursorPos = expression.length;
     lastValidResult = formatted;
     syncExpression();
     renderExpression("bottom");
@@ -1122,19 +1245,64 @@ document.addEventListener("deviceready", function () {
   setTheme(saved, false);
 }, false);
 
-exprView?.addEventListener("paste", (e) => {
-  e.preventDefault();
-  
-  const pastedText = (e.clipboardData || window.clipboardData).getData("text");
-  if (pastedText) {
-    const cleanText = pastedText.replace(/[^0-9\.+\-×÷\*\/\(\)\^\%]/g, "");
-    clearIfSelected();
-    insertAtCursor(cleanText);
-  }
-});
+function setCursorFromPoint(clientX, clientY) {
+  if (!exprView) return false;
 
-exprView?.addEventListener("keydown", (e) => {
-  if (!e.metaKey && !e.ctrlKey) {
-    e.preventDefault();
+  if (typeof document.caretRangeFromPoint === "function") {
+    const range = document.caretRangeFromPoint(clientX, clientY);
+    if (range && exprView.contains(range.startContainer)) {
+      const idx = nodeOffsetToCharIndex(range.startContainer, range.startOffset);
+      if (idx !== null) {
+        cursorPos = Math.max(0, Math.min(expression.length, idx));
+        return true;
+      }
+    }
+  }
+
+  const spans = exprView.querySelectorAll('span[data-start]');
+  if (spans.length === 0) {
+    cursorPos = 0;
+    return true;
+  }
+
+  let chosen = null;
+  for (const span of spans) {
+    const rect = span.getBoundingClientRect();
+    if (clientX >= rect.left && clientX <= rect.right) {
+      const midX = rect.left + rect.width / 2;
+      const start = parseInt(span.dataset.start, 10);
+      const end = parseInt(span.dataset.end, 10);
+      chosen = clientX < midX ? start : end;
+      break;
+    }
+  }
+
+  if (chosen === null) {
+    let minDist = Infinity;
+    for (const span of spans) {
+      const rect = span.getBoundingClientRect();
+      const dLeft = Math.abs(clientX - rect.left);
+      const dRight = Math.abs(clientX - rect.right);
+      const start = parseInt(span.dataset.start, 10);
+      const end = parseInt(span.dataset.end, 10);
+      if (dLeft < minDist) { minDist = dLeft; chosen = start; }
+      if (dRight < minDist) { minDist = dRight; chosen = end; }
+    }
+  }
+
+  if (chosen !== null) {
+    cursorPos = Math.max(0, Math.min(expression.length, chosen));
+    return true;
+  }
+  return false;
+}
+
+exprView?.addEventListener("click", (e) => {
+  const nativeSel = window.getSelection && window.getSelection();
+  if (nativeSel && !nativeSel.isCollapsed && exprView.contains(nativeSel.anchorNode)) {
+    return;
+  }
+  if (setCursorFromPoint(e.clientX, e.clientY)) {
+    renderExpression("preserve");
   }
 });
