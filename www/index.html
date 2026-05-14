@@ -4,18 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>WhatsApp Calc</title>
-  <meta name="theme-color" content="#f5f7fb" id="themeColorMeta" />
-
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem("calc_theme") || "theme-light";
-      document.documentElement.classList.add(savedTheme);
-      document.documentElement.style.backgroundColor =
-        savedTheme === "theme-dark" ? "#000000" : "#f5f7fb";
-    })();
-
-    
-  </script>
+<meta name="theme-color" content="#000000" id="themeColorMeta" />
+<script>(function () {
+  const savedTheme = localStorage.getItem("calc_theme") || "theme-light";
+  document.documentElement.classList.add(savedTheme);
+  const bg = savedTheme === "theme-dark" ? "#000000" : "#f5f7fb";
+  document.documentElement.style.backgroundColor = bg;
+  document.documentElement.style.background = bg;
+})();
+</script>
   <link rel="stylesheet" href="css/index.css" />
   <script src="cordova.js"></script>
   <script src="js/math.min.js"></script>
@@ -27,8 +24,8 @@
     <div class="header">
       <button class="icon-btn" id="menuBtn">☰</button>
 
-      <div class="title-wrap">
-        <a class="page-btn" href="whatsApp.html">WhatsApp Calc</a>
+      <div class="title-wrap" style="justify-content:center;">
+        <a class="page-btn" href="whatsApp.html">BKs Nmbr Hisab</a>
       </div>
 
       <div class="header-placeholder"></div>

@@ -233,19 +233,10 @@ function placeCursorOverlay() {
 
 function fitExpressionText() {
   if (!exprView) return;
-
   const len = expression.length;
-
-  // প্রতি লাইনে আনুমানিক কতটি character ধরে তার উপর ভিত্তি করে font size
-  // 48px এ screen width ~360px এ প্রায় 8-9 char ধরে
-  // তাই:
-  // ১ম লাইন (1-9 char)   → 48px
-  // ২য় লাইন (10-18 char) → 34px
-  // ৩য় লাইন (19+ char)   → 24px
-
-  if (len <= 9) {
+  if (len <= 8) {
     exprView.style.fontSize = "39px";
-  } else if (len <= 18) {
+  } else if (len <= 15) {
     exprView.style.fontSize = "34px";
   } else {
     exprView.style.fontSize = "24px";
@@ -254,16 +245,9 @@ function fitExpressionText() {
 
 function renderExpression(mode = "preserve") {
   if (!exprView) return;
-
   const previousScrollTop = exprView.scrollTop;
-
-  // ১. আগেই font size set করো (expression variable দিয়ে)
   fitExpressionText();
-
-  // ২. তারপর HTML set করো
   exprView.innerHTML = buildExpressionHTML();
-
-  // ৩. render হওয়ার পরে scroll ও cursor ঠিক করো
   requestAnimationFrame(() => {
     exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight : previousScrollTop;
     placeCursorOverlay();
@@ -273,7 +257,7 @@ function renderExpression(mode = "preserve") {
 function renderAfterEdit() {
   syncExpression();
   updateResult();
-  renderExpression("preserve"); // backspace/delete → scroll ধরে রাখো
+  renderExpression("preserve");
 }
 
 function renderAfterTap() {
@@ -285,24 +269,17 @@ function renderAfterTap() {
 ================================*/
 function fitResultText() {
   if (!result) return;
-
   const text = result.textContent || "";
-
   if (text === "0" || text === "") {
     result.style.fontSize = "35px";
     return;
   }
-
-  // ধাপে ধাপে font size কমাতে থাকো যতক্ষণ না text box এ ফেটে যায়
   const maxSize = 35;
-  const minSize = 8;
+  const minSize = 5;
   const step = 1;
-
   result.style.fontSize = maxSize + "px";
-
   for (let size = maxSize; size >= minSize; size -= step) {
     result.style.fontSize = size + "px";
-    // scrollWidth > clientWidth মানে text বাইরে বেরিয়ে যাচ্ছে
     if (result.scrollWidth <= result.clientWidth) {
       break;
     }
@@ -323,7 +300,7 @@ function insertAtCursor(text) {
   cursorIndex += text.length;
   syncExpression();
   updateResult();
-  renderExpression("bottom"); // নতুন character → নিচে scroll
+  renderExpression("bottom");
 }
 
 function insertOperator(op) {
@@ -360,9 +337,7 @@ function getCurrentNumberSegmentLeft() {
 function insertDot() {
   const prev = expression[cursorIndex - 1] || "";
   const currentNum = getCurrentNumberSegmentLeft();
-
   if (currentNum.includes(".")) return;
-
   if (
     cursorIndex === 0 ||
     isOperator(prev) ||
@@ -373,7 +348,6 @@ function insertDot() {
     insertAtCursor("0.");
     return;
   }
-
   if (prev === ")") return;
   insertAtCursor(".");
 }
@@ -400,11 +374,9 @@ function smartBracket() {
   }
 }
 
-/* ===== FIX: backspace multi-char tokens (sin(, cos(, etc.) ===== */
 function backspaceAtCursor() {
   if (cursorIndex <= 0) return;
 
-  // Multi-char function names যেগুলো একসাথে মুছে ফেলা উচিত
   const multiCharTokens = [
     "asinh(", "acosh(", "atanh(",
     "asin(", "acos(", "atan(",
@@ -464,7 +436,7 @@ function findOperandBoundsAroundCursor(expr, index) {
   let start = index;
   while (start > 0) {
     const ch = expr[start - 1];
-    if (isOperator(ch) || ch === "(" || ch === "," ) break;
+    if (isOperator(ch) || ch === "(" || ch === ",") break;
     start--;
   }
 
@@ -506,19 +478,15 @@ function wrapCurrentOperand(prefix, suffix = ")") {
 ================================*/
 function formatResultNumber(v) {
   if (typeof v !== "number" || !isFinite(v)) return "Error";
-
   const abs = Math.abs(v);
-
   if (abs !== 0 && (abs >= 1e12 || abs < 1e-10)) {
     return Number(v).toExponential(10).replace(/\.?0+e/, "e");
   }
-
   return Number(v).toLocaleString("en-US", {
     maximumFractionDigits: 10
   });
 }
 
-/* ===== FIX: math.js এর উপর নির্ভর না করে নিজেই factorial ===== */
 function factorialSafe(n) {
   if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0) {
     throw new Error("Invalid factorial");
@@ -537,18 +505,15 @@ function createFunctionScope() {
     sin: sciAngleMode === "deg" ? (x) => Math.sin(toRad(x)) : (x) => Math.sin(x),
     cos: sciAngleMode === "deg" ? (x) => Math.cos(toRad(x)) : (x) => Math.cos(x),
     tan: sciAngleMode === "deg" ? (x) => Math.tan(toRad(x)) : (x) => Math.tan(x),
-
     asin: sciAngleMode === "deg" ? (x) => toDeg(Math.asin(x)) : (x) => Math.asin(x),
     acos: sciAngleMode === "deg" ? (x) => toDeg(Math.acos(x)) : (x) => Math.acos(x),
     atan: sciAngleMode === "deg" ? (x) => toDeg(Math.atan(x)) : (x) => Math.atan(x),
-
     sinh: (x) => Math.sinh(x),
     cosh: (x) => Math.cosh(x),
     tanh: (x) => Math.tanh(x),
     asinh: (x) => Math.asinh(x),
     acosh: (x) => Math.acosh(x),
     atanh: (x) => Math.atanh(x),
-
     sqrt: (x) => Math.sqrt(x),
     cbrt: (x) => Math.cbrt(x),
     abs: (x) => Math.abs(x),
@@ -639,7 +604,6 @@ class Parser {
     this.tokens = tokens;
     this.pos = 0;
     this.fnScope = fnScope;
-    // additive এর right side parse করার সময় true → % কে postfix এ consume করবে না
     this.skipPercentPostfix = false;
   }
 
@@ -666,13 +630,6 @@ class Parser {
     return value;
   }
 
-  /*
-   * PERCENT LOGIC:
-   *   একা:        50%        = 0.5
-   *   গুণ/ভাগ:    500000%2.5 = 500000 × (2.5/100) = 12500
-   *   যোগ/বিয়োগ: 100+10%    = 100 + (100×10/100)  = 110
-   *               200-50%    = 200 - (200×50/100)   = 100
-   */
   parseAdditive() {
     let left = this.parseMul();
 
@@ -684,15 +641,13 @@ class Parser {
       this.consume();
       const op = token.value;
 
-      // right side এ % কে postfix এ consume করতে দেবো না
       this.skipPercentPostfix = true;
       const right = this.parseMul();
       this.skipPercentPostfix = false;
 
-      // right এর পরে % আছে কিনা দেখো
       const pct = this.peek();
       if (pct && pct.type === "symbol" && pct.value === "%") {
-        this.consume(); // % consume
+        this.consume();
         const amt = left * (right / 100);
         left = op === "+" ? left + amt : left - amt;
       } else {
@@ -710,7 +665,6 @@ class Parser {
       const token = this.peek();
       if (!token || token.type !== "symbol") break;
 
-      // A%B multiplicative: 500000%2.5 = 500000*(2.5/100)
       if (token.value === "%") {
         const next = this.peek(1);
         if (
@@ -719,7 +673,7 @@ class Parser {
             next.type === "func" ||
             (next.type === "symbol" && next.value === "("))
         ) {
-          this.consume(); // % consume
+          this.consume();
           const right = this.parsePower();
           left = left * (right / 100);
           continue;
@@ -747,28 +701,23 @@ class Parser {
   parsePower() {
     let left = this.parseUnary();
     const token = this.peek();
-
     if (token && token.type === "symbol" && token.value === "^") {
       this.consume();
-      left = left ** this.parsePower(); // right-associative
+      left = left ** this.parsePower();
     }
-
     return left;
   }
 
   parseUnary() {
     const token = this.peek();
-
     if (token && token.type === "symbol" && token.value === "+") {
       this.consume();
       return +this.parseUnary();
     }
-
     if (token && token.type === "symbol" && token.value === "-") {
       this.consume();
       return -this.parseUnary();
     }
-
     return this.parsePostfix();
   }
 
@@ -786,9 +735,7 @@ class Parser {
       }
 
       if (token.value === "%") {
-        // additive এর right side এ আছি → consume করো না, additive handle করবে
         if (this.skipPercentPostfix) break;
-        // পরে number/func থাকলে parseMul এ handle হবে
         const next = this.peek(1);
         if (
           next &&
@@ -796,7 +743,6 @@ class Parser {
             next.type === "func" ||
             (next.type === "symbol" && next.value === "("))
         ) break;
-        // একা % → /100
         this.consume();
         value = value / 100;
         continue;
@@ -830,10 +776,8 @@ class Parser {
       this.expect("symbol", "(");
       const arg = this.parseAdditive();
       this.expect("symbol", ")");
-
       const fn = this.fnScope[fnName];
       if (typeof fn !== "function") throw new Error("Unknown function");
-
       const out = fn(arg);
       if (!Number.isFinite(out) || Number.isNaN(out)) throw new Error("Invalid function result");
       return out;
@@ -843,14 +787,12 @@ class Parser {
   }
 }
 
-/* ===== FIX: sanitizeForPreview এ "−" যোগ করা হয়েছে ===== */
 function sanitizeForPreview(raw) {
   let s = raw.trim();
   if (!s) return "";
 
   while (s.length) {
     const last = s[s.length - 1];
-    // "−" (minus) যোগ করা হয়েছে
     if (["+", "−", "×", "÷", "^", ".", ","].includes(last)) {
       s = s.slice(0, -1).trim();
       continue;
@@ -882,7 +824,6 @@ function safeEval(text) {
     const tokens = tokenizeForParser(normalized);
     const parser = new Parser(tokens, createFunctionScope());
     const out = parser.parse();
-
     if (!Number.isFinite(out) || Number.isNaN(out)) return null;
     return out;
   } catch (err) {
@@ -932,7 +873,6 @@ function finalAnswer() {
 
   const formatted = formatResultNumber(out);
 
-  // expression fade out করো
   if (exprView) {
     exprView.style.transition = "opacity 0.15s ease";
     exprView.style.opacity = "0";
@@ -946,7 +886,6 @@ function finalAnswer() {
     renderExpression("bottom");
     setResultText(formatted);
 
-    // expression fade in করো
     if (exprView) {
       exprView.style.opacity = "1";
       setTimeout(() => {
@@ -959,25 +898,6 @@ function finalAnswer() {
 /* ===============================
    THEME
 ================================*/
-// function setTheme(theme, save = true) {
-//   document.documentElement.classList.remove("theme-dark", "theme-light");
-//   document.documentElement.classList.add(theme);
-
-//   if (save) localStorage.setItem("calc_theme", theme);
-
-//   if (themeToggleBtn) {
-//     themeToggleBtn.textContent = theme === "theme-dark" ? "Light Mode" : "Dark Mode";
-//   }
-
-//   const themeColor = theme === "theme-dark" ? "#000000" : "#f5f7fb";
-//   const meta = document.getElementById("themeColorMeta");
-//   if (meta) meta.setAttribute("content", themeColor);
-
-//   document.documentElement.style.backgroundColor = themeColor;
-//   document.body.style.backgroundColor = themeColor;
-// }
-
-//System aware theme toggle by Nader Mahbub Khan
 function setTheme(theme, save = true) {
   document.documentElement.classList.remove("theme-dark", "theme-light");
   document.documentElement.classList.add(theme);
@@ -988,27 +908,26 @@ function setTheme(theme, save = true) {
     themeToggleBtn.textContent = theme === "theme-dark" ? "Light Mode" : "Dark Mode";
   }
 
-  const themeColor = theme === "theme-dark" ? "#000000" : "#f5f7fb";
+  const isLight = theme !== "theme-dark";
+  const themeColor = isLight ? "#f5f7fb" : "#000000";
+
   const meta = document.getElementById("themeColorMeta");
   if (meta) meta.setAttribute("content", themeColor);
 
   document.documentElement.style.backgroundColor = themeColor;
   document.body.style.backgroundColor = themeColor;
 
-  //magic by nader mahbub khan to set system bars color according to theme
-  if (window.StatusBar) {
+if (window.StatusBar) {
     StatusBar.backgroundColorByHexString(themeColor);
-    if (theme === "theme-dark") {
-      StatusBar.styleLightContent(); // Light text for dark backgrounds
+    if (isLight) {
+      StatusBar.styleDefault();
     } else {
-      StatusBar.styleDefault();      // Dark text for light backgrounds
+      StatusBar.styleLightContent();
     }
   }
 
   if (window.NavigationBar) {
-    const isLightMode = theme !== "theme-dark";
-    // The second parameter 'isLightMode' tells Android to use dark icons on the navigation bar
-    NavigationBar.backgroundColorByHexString(themeColor, isLightMode); 
+    NavigationBar.backgroundColorByHexString(themeColor, isLight);
   }
 }
 
@@ -1084,7 +1003,6 @@ async function copyResult() {
 
   try {
     await navigator.clipboard.writeText(value);
-    showToast("Copied");
   } catch {
     const temp = document.createElement("textarea");
     temp.value = value;
@@ -1092,16 +1010,22 @@ async function copyResult() {
     temp.select();
     document.execCommand("copy");
     document.body.removeChild(temp);
-    showToast("Copied");
   }
+
+  copyResultBtn?.classList.remove("copied");
+  void copyResultBtn?.offsetWidth;
+  copyResultBtn?.classList.add("copied");
+  setTimeout(() => {
+    copyResultBtn?.classList.remove("copied");
+  }, 150);
+
+  showToast("Copied ✓");
 }
 
 /* ===============================
    HAPTIC
 ================================*/
 function haptic() {
-  // navigator.vibrate অনেক WebView এ কাজ করে না
-  // CSS class দিয়ে visual + physical feel দেওয়া হচ্ছে
   try { if (navigator.vibrate) navigator.vibrate(6); } catch {}
 }
 
@@ -1126,10 +1050,25 @@ themeToggleBtn?.addEventListener("pointerdown", (e) => {
   toggleTheme();
 });
 
+let backspaceLongTimer = null;
+
 backspaceBtn?.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   haptic();
   backspaceAtCursor();
+
+  backspaceLongTimer = setTimeout(() => {
+    haptic();
+    clearAll();
+  }, 600);
+});
+
+backspaceBtn?.addEventListener("pointerup", () => {
+  clearTimeout(backspaceLongTimer);
+});
+
+backspaceBtn?.addEventListener("pointerleave", () => {
+  clearTimeout(backspaceLongTimer);
 });
 
 actionScientificBtn?.addEventListener("pointerdown", (e) => {
@@ -1298,3 +1237,11 @@ window.addEventListener("resize", () => {
   fitExpressionText();
   fitResultText();
 });
+
+/* ===============================
+   DEVICE READY
+================================*/
+document.addEventListener("deviceready", function () {
+  const saved = localStorage.getItem("calc_theme") || "theme-light";
+  setTheme(saved, false);
+}, false);

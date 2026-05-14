@@ -5,7 +5,7 @@
 (function () {
   // Google's official Android test banner unit. Swap for the real unit before
   // release. See https://developers.google.com/admob/android/test-ads
-  var TEST_BANNER_AD_UNIT_ID = 'ca-app-pub-3940256099942544/6300978111';
+  var NADER_AD_UNIT_ID = 'ca-app-pub-3139819978975551/7764030861';
 
   function log(text) {
     try {
@@ -22,9 +22,9 @@
   function loadBanner(plugin) {
     try {
       plugin.loadBannerAd({
-        adUnitId: TEST_BANNER_AD_UNIT_ID,
+        adUnitId: NADER_AD_UNIT_ID,
         position: 'bottom-center',
-        size: 'BANNER',
+        size:  'BANNER', 
         collapsible: false,
         autoShow: true,
         isOverlapping: true,

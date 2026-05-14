@@ -77,6 +77,16 @@ jobs:
       - name: Add Android platform
         run: cordova platform add android@${{ env.CORDOVA_ANDROID_VERSION }}
 
+      - name: Add AD_ID permission to AndroidManifest
+        run: |
+          MANIFEST="platforms/android/app/src/main/AndroidManifest.xml"
+          if grep -q "AD_ID" "$MANIFEST"; then
+            echo "AD_ID permission already exists"
+          else
+            sed -i 's|</manifest>|    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>\n</manifest>|' "$MANIFEST"
+            echo "AD_ID permission added"
+          fi
+
       - name: Create cdv-gradle-config.json
         run: |
           mkdir -p platforms/android
@@ -90,44 +100,37 @@ jobs:
             "KOTLIN_VERSION": "1.9.24"
           }
           EOF
-          echo "Created cdv-gradle-config.json"
 
-      - name: Generate Test Keystore
+      - name: Decode Keystore from Secret
         run: |
-          keytool -genkeypair -v \
-            -keystore ${{ github.workspace }}/bkcalc-testkey.jks \
-            -alias bkcalc-testkey \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass testkeypass -keypass testkeypass \
-            -dname "CN=BkCalc Test, OU=Dev, O=BkCalc, L=Test, ST=Test, C=US"
-          echo "Test keystore generated successfully"
+          echo "${{ secrets.BKCALC_KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/my-release-key.jks
+          echo "Keystore decoded successfully"
 
-      - name: Create build.json for testkey APK signing
+      - name: Create build.json for release signing
         run: |
           cat > build.json << EOF
           {
             "android": {
               "release": {
-                "keystore": "${{ github.workspace }}/bkcalc-testkey.jks",
-                "storePassword": "testkeypass",
-                "alias": "bkcalc-testkey",
-                "password": "testkeypass",
+                "keystore": "${{ github.workspace }}/my-release-key.jks",
+                "storePassword": "${{ secrets.BKCALC_KEYSTORE_PASSWORD }}",
+                "alias": "${{ secrets.BKCALC_KEY_ALIAS }}",
+                "password": "${{ secrets.BKCALC_KEY_PASSWORD }}",
                 "keystoreType": "jks"
               }
             }
           }
           EOF
-          echo "Created build.json (testkey)"
 
-      - name: Build Release APK (test-key signed)
+      - name: Build Release APK (signed)
         env:
           GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
         run: cordova build android --release --buildConfig=build.json -- --packageType=apk
 
-      - name: Build Release AAB (unsigned)
+      - name: Build Release AAB (signed)
         env:
           GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.daemon=false"
-        run: cordova build android --release -- --packageType=bundle
+        run: cordova build android --release --buildConfig=build.json -- --packageType=bundle
 
       - name: Get App Version
         id: version
@@ -139,18 +142,11 @@ jobs:
       - name: Prepare build artifacts
         run: |
           mkdir -p build-output
-
-          echo "Searching APK and AAB files..."
-          find platforms/android -name "*.apk" -type f 2>/dev/null || true
-          find platforms/android -name "*.aab" -type f 2>/dev/null || true
-
           APK_PATH=$(find platforms/android -name "*release*.apk" -type f 2>/dev/null | head -1)
           AAB_PATH=$(find platforms/android -name "*release*.aab" -type f 2>/dev/null | head -1)
-
-          [ -f "$APK_PATH" ] && cp "$APK_PATH" "build-output/app-release-testkey-${{ steps.version.outputs.version }}.apk"
-          [ -f "$AAB_PATH" ] && cp "$AAB_PATH" "build-output/app-release-unsigned-${{ steps.version.outputs.version }}.aab"
-
-          ls -la build-output/ || true
+          [ -f "$APK_PATH" ] && cp "$APK_PATH" "build-output/app-release-${{ steps.version.outputs.version }}.apk"
+          [ -f "$AAB_PATH" ] && cp "$AAB_PATH" "build-output/app-release-${{ steps.version.outputs.version }}.aab"
+          ls -la build-output/
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -160,10 +156,10 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
-      - name: Clean up build files
+      - name: Clean up sensitive files
         if: always()
         run: |
-          rm -f bkcalc-testkey.jks
+          rm -f my-release-key.jks
           rm -f build.json
 
   release:
@@ -188,7 +184,6 @@ jobs:
             VERSION="${{ needs.build.outputs.version }}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Release version: $VERSION"
 
       - name: Generate release tag
         id: release_tag
@@ -199,17 +194,12 @@ jobs:
             TAG="v${{ steps.get_version.outputs.version }}-build.${{ github.run_number }}"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Release tag: $TAG"
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: android-release-${{ needs.build.outputs.version }}
           path: release-assets
-
-      - name: List release assets
-        run: |
-          ls -la release-assets/ || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

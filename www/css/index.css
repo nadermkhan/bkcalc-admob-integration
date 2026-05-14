@@ -65,7 +65,21 @@ html,body{
   height:100%;
   overflow:hidden;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-  background:var(--bg);
+  background:#f5f7fb;
+}
+
+html{
+  background:#f5f7fb;
+}
+
+html.theme-dark,
+html.theme-dark body{
+  background:#000000 !important;
+}
+
+html.theme-light,
+html.theme-light body{
+  background:#f5f7fb !important;
 }
 
 body{
@@ -77,24 +91,46 @@ body{
   margin:0;
 }
 
+html.theme-light .app{
+  background:#f5f7fb !important;
+}
+
+html.theme-dark .app{
+  background:#000000 !important;
+}
+
+
+
+html.theme-dark .header{
+  background:#000000; 
+}
+
+html.theme-light .header .icon-btn{
+  color:#101623;
+}
+
+html.theme-dark .header .icon-btn{
+  color:#ffffff;
+}
+
+.grid{
+  padding-bottom:2px;
+}
+
 .app{
   width:100%;
   max-width:520px;
-  /* height:100vh;
-  height:100dvh; */
-  height:100%; /*Patched by Nader Mahbub Khan*/
+  height:100%;
   background:var(--bg);
   display:grid;
   grid-template-rows:
     clamp(50px, 7.2dvh, 62px)
     minmax(150px, 1fr)
     clamp(48px, 7dvh, 58px)
-    minmax(300px, 43dvh)
-    /*clamp(54px, 7.5dvh, 64px);*/
+    minmax(300px, 43dvh);
   overflow:hidden;
   padding-top:var(--safe-top);
-  /* padding-bottom:var(--safe-bottom); */
-  padding-bottom: calc(50px + var(--safe-bottom));
+  padding-bottom:calc(50px + var(--safe-bottom));
   position:relative;
 }
 
@@ -227,6 +263,7 @@ body{
   display:flex;
   align-items:flex-end;
   position:relative;
+  padding-top:2px;
 }
 
 .expression-view{
@@ -255,14 +292,6 @@ body{
   position:relative;
   scrollbar-width:none;
   -ms-overflow-style:none;
-}
-.expression-wrap{
-  min-height:0;
-  overflow:hidden;
-  display:flex;
-  align-items:flex-end;
-  position:relative;
-  padding-top:2px;
 }
 
 .expr-line{
@@ -370,7 +399,6 @@ body{
   line-height:1;
   font-weight:800;
   padding-left:8px;
-
 }
 
 .action-link{
@@ -473,6 +501,7 @@ body{
   background:var(--equal-bg);
   color:var(--equal-text);
   font-weight:800;
+  font-size:clamp(30px, 7.5vw, 50px);
 }
 
 .banner{
@@ -662,9 +691,7 @@ body{
       minmax(128px, 1fr)
       46px
       minmax(270px, 44dvh);
-     /* 52px;*/
   }
-
   .result{
     font-size:42px;
   }
@@ -674,7 +701,6 @@ body{
   .sci-drawer{
     width:82vw;
   }
-
   .sci-btn{
     min-height:46px;
     font-size:12px;
