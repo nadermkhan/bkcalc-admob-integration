@@ -1017,9 +1017,9 @@ async function copyResult() {
   copyResultBtn?.classList.add("copied");
   setTimeout(() => {
     copyResultBtn?.classList.remove("copied");
-  }, 150);
+  }, 300);
 
-  showToast("Copied ✓");
+  showToast(`Copied Amount: ${value}`);
 }
 
 /* ===============================
