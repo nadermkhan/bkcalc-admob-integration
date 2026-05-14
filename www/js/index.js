@@ -179,7 +179,8 @@ function buildExpressionHTML() {
   let probePlaced = false;
 
   if (tokens.length === 0) {
-    html = `<span class="cursor-probe" id="cursorProbe">|</span>`;
+    // Add &#8203; (Zero-width space) so the OS context menu always has something to highlight
+    html = `&#8203;<span class="cursor-probe" id="cursorProbe">|</span>`;
     return `<div class="expr-line">${html}</div>`;
   }
 
@@ -1032,8 +1033,11 @@ function haptic() {
 /* ===============================
    EVENTS
 ================================*/
-copyResultBtn?.addEventListener("pointerdown", (e) => {
-  // e.preventDefault();
+// Target specifically the copy icon inside the container
+const actualCopyIcon = document.querySelector(".copy-icon");
+
+actualCopyIcon?.addEventListener("pointerdown", (e) => {
+  e.stopPropagation(); // Prevents the click from interfering with anything else
   haptic();
   copyResult();
 });
@@ -1245,3 +1249,21 @@ document.addEventListener("deviceready", function () {
   const saved = localStorage.getItem("calc_theme") || "theme-light";
   setTheme(saved, false);
 }, false);
+
+exprView?.addEventListener("paste", (e) => {
+  e.preventDefault();
+  // Get pasted text natively
+  const pastedText = (e.clipboardData || window.clipboardData).getData("text");
+  if (pastedText) {
+    // Clean it to only allow numbers and basic math symbols
+    const cleanText = pastedText.replace(/[^0-9\.+\-×÷\*\/\(\)\^\%]/g, "");
+    insertAtCursor(cleanText);
+  }
+});
+
+// Optional: Prevent hardware keyboards from messing up the state since we use buttons
+exprView?.addEventListener("keydown", (e) => {
+  if (!e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+  }
+});
