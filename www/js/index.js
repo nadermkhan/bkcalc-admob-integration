@@ -209,7 +209,24 @@ function renderExpression(mode = "preserve") {
   exprView.innerHTML = buildExpressionHTML();
   requestAnimationFrame(() => {
     exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight : previousScrollTop;
+    moveCaretToEnd();
   });
+}
+
+function moveCaretToEnd() {
+  if (!exprView) return;
+  
+  // Create a range that selects the contents of our math view
+  const range = document.createRange();
+  const selection = window.getSelection();
+  
+  range.selectNodeContents(exprView);
+  // collapse(false) means "collapse the selection to the END of the range"
+  range.collapse(false); 
+  
+  // Apply the new cursor position
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 function renderAfterEdit() {
@@ -253,7 +270,17 @@ function setResultText(value) {
 /* ===============================
    INSERT / DELETE
 ================================*/
+function clearIfSelected() {
+  const selection = window.getSelection();
+  // Check if the user has highlighted text in the calculator
+  if (selection.toString().trim().length > 0) {
+    expression = ""; // Erase the old equation
+    selection.removeAllRanges(); // Dismiss the native OS highlight
+  }
+}
+
 function insertAtCursor(text) {
+  clearIfSelected();
   expression += text;
   renderAfterEdit();
 }
@@ -891,7 +918,7 @@ async function copyResult() {
   copyResultBtn?.classList.add("copied");
   setTimeout(() => {
     copyResultBtn?.classList.remove("copied");
-  }, 300);
+  }, 150);
 
   showToast(`Copied Amount: ${value}`);
 }
@@ -1109,11 +1136,14 @@ document.addEventListener("deviceready", function () {
 
 exprView?.addEventListener("paste", (e) => {
   e.preventDefault();
-  // Get pasted text natively
+  
   const pastedText = (e.clipboardData || window.clipboardData).getData("text");
   if (pastedText) {
-    // Clean it to only allow numbers and basic math symbols
     const cleanText = pastedText.replace(/[^0-9\.+\-×÷\*\/\(\)\^\%]/g, "");
+    
+    // Check for Select All / Highlighted text and clear it first
+    clearIfSelected();
+    
     insertAtCursor(cleanText);
   }
 });
