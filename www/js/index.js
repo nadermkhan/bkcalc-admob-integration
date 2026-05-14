@@ -17,13 +17,11 @@ const invToggleBtn = document.getElementById("invToggleBtn");
 const angleToggleBtn = document.getElementById("angleToggleBtn");
 
 let expression = localStorage.getItem("calc_expression_live") || "";
-let cursorIndex = expression.length;
 let lastValidResult = "0";
 let toastTimer = null;
 
 let sciInvMode = false;
 let sciAngleMode = "deg";
-let exprTouchTimer = null;
 
 /* ===============================
    CORE
@@ -80,36 +78,36 @@ function updateSciButtons() {
       : btn.dataset.normal;
 
     const labelMap = {
-      "sin("   : "sin",
-      "asin("  : "sin⁻¹",
-      "cos("   : "cos",
-      "acos("  : "cos⁻¹",
-      "tan("   : "tan",
-      "atan("  : "tan⁻¹",
-      "π"      : "π",
-      "e"      : "e",
-      "ln("    : "ln",
-      "exp("   : "eˣ",
-      "log("   : "log",
-      "pow10(" : "10ˣ",
-      "√("     : "√",
-      "∛("     : "∛",
-      "^"      : "xʸ",
-      "("      : "( )",
-      "abs("   : "abs",
-      "1/abs(" : "1/abs",
-      "1/"     : "1/x",
-      "%"      : "%",
-      "sinh("  : "sinh",
-      "asinh(" : "sinh⁻¹",
-      "cosh("  : "cosh",
-      "acosh(" : "cosh⁻¹",
-      "tanh("  : "tanh",
-      "atanh(" : "tanh⁻¹",
-      "!"      : "x!",
-      "sq("    : "x²",
-      "cube("  : "x³",
-      "00"     : "00"
+      "sin(": "sin",
+      "asin(": "sin⁻¹",
+      "cos(": "cos",
+      "acos(": "cos⁻¹",
+      "tan(": "tan",
+      "atan(": "tan⁻¹",
+      "π": "π",
+      "e": "e",
+      "ln(": "ln",
+      "exp(": "eˣ",
+      "log(": "log",
+      "pow10(": "10ˣ",
+      "√(": "√",
+      "∛(": "∛",
+      "^": "xʸ",
+      "(": "( )",
+      "abs(": "abs",
+      "1/abs(": "1/abs",
+      "1/": "1/x",
+      "%": "%",
+      "sinh(": "sinh",
+      "asinh(": "sinh⁻¹",
+      "cosh(": "cosh",
+      "acosh(": "cosh⁻¹",
+      "tanh(": "tanh",
+      "atanh(": "tanh⁻¹",
+      "!": "x!",
+      "sq(": "x²",
+      "cube(": "x³",
+      "00": "00"
     };
 
     btn.textContent = labelMap[current] || current;
@@ -175,61 +173,21 @@ function tokenizeExpression(value) {
 
 function buildExpressionHTML() {
   const tokens = tokenizeExpression(expression);
-  let html = "";
-  let probePlaced = false;
 
   if (tokens.length === 0) {
-    // Add &#8203; (Zero-width space) so the OS context menu always has something to highlight
-    html = `&#8203;<span class="cursor-probe" id="cursorProbe">|</span>`;
-    return `<div class="expr-line">${html}</div>`;
+    return `<div class="expr-line">&#8203;</div>`;
   }
 
+  let html = "";
   for (const token of tokens) {
-    if (cursorIndex === token.start) {
-      html += `<span class="cursor-probe" id="cursorProbe">|</span>`;
-      probePlaced = true;
-    }
-
-    if (cursorIndex > token.start && cursorIndex < token.end) {
-      const split = cursorIndex - token.start;
-      const left = escapeHtml(token.text.slice(0, split));
-      const right = escapeHtml(token.text.slice(split));
-      html += `<span class="expr-token">${left}<span class="cursor-probe" id="cursorProbe">|</span>${right}</span>`;
-      probePlaced = true;
+    if (/[+\-×÷]/.test(token.text)) {
+      html += `<span class="operator-token">${escapeHtml(token.text)}</span>`;
     } else {
-      html += `<span class="expr-token">${escapeHtml(token.text)}</span>`;
+      html += `<span>${escapeHtml(token.text)}</span>`;
     }
-  }
-
-  if (!probePlaced) {
-    html += `<span class="cursor-probe" id="cursorProbe">|</span>`;
   }
 
   return `<div class="expr-line">${html}</div>`;
-}
-
-function placeCursorOverlay() {
-  const oldOverlay = exprView?.querySelector(".cursor-overlay");
-  if (oldOverlay) oldOverlay.remove();
-
-  const probe = exprView?.querySelector("#cursorProbe");
-  if (!probe || !exprView) return;
-
-  const probeRect = probe.getBoundingClientRect();
-  const viewRect = exprView.getBoundingClientRect();
-
-  const overlay = document.createElement("div");
-  overlay.className = "cursor-overlay";
-
-  const lineHeight =
-    parseFloat(getComputedStyle(exprView).lineHeight) || (probeRect.height || 24);
-
-  overlay.style.height = `${Math.max(lineHeight * 0.95, probeRect.height || 22)}px`;
-  overlay.style.left = `${probeRect.left - viewRect.left + exprView.scrollLeft}px`;
-  overlay.style.top = `${probeRect.top - viewRect.top + exprView.scrollTop}px`;
-
-  exprView.appendChild(overlay);
-  probe.remove();
 }
 
 function fitExpressionText() {
@@ -251,7 +209,6 @@ function renderExpression(mode = "preserve") {
   exprView.innerHTML = buildExpressionHTML();
   requestAnimationFrame(() => {
     exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight : previousScrollTop;
-    placeCursorOverlay();
   });
 }
 
@@ -297,11 +254,8 @@ function setResultText(value) {
    INSERT / DELETE
 ================================*/
 function insertAtCursor(text) {
-  expression = expression.slice(0, cursorIndex) + text + expression.slice(cursorIndex);
-  cursorIndex += text.length;
-  syncExpression();
-  updateResult();
-  renderExpression("bottom");
+  expression += text;
+  renderAfterEdit();
 }
 
 function insertOperator(op) {
@@ -309,43 +263,26 @@ function insertOperator(op) {
     if (op === "−") insertAtCursor("−");
     return;
   }
-
-  const prev = expression[cursorIndex - 1] || "";
-  const next = expression[cursorIndex] || "";
-
-  if (isOperator(prev) && (cursorIndex === expression.length || !isOperator(next))) {
-    expression = expression.slice(0, cursorIndex - 1) + op + expression.slice(cursorIndex);
-    cursorIndex = cursorIndex - 1 + op.length;
+  const prev = expression.slice(-1);
+  if (isOperator(prev)) {
+    expression = expression.slice(0, -1) + op;
     renderAfterEdit();
     return;
   }
-
-  if (cursorIndex === 0) {
-    if (op === "−") insertAtCursor("−");
-    return;
-  }
-
   if (prev === "(" && op !== "−") return;
   insertAtCursor(op);
 }
 
 function getCurrentNumberSegmentLeft() {
-  const left = expression.slice(0, cursorIndex);
-  const match = left.match(/(?:^|[+\−×÷^%(,])(\d*\.?\d*)$/);
+  const match = expression.match(/(?:^|[+\−×÷^%(,])(\d*\.?\d*)$/);
   return match ? match[1] : "";
 }
 
 function insertDot() {
-  const prev = expression[cursorIndex - 1] || "";
+  const prev = expression.slice(-1);
   const currentNum = getCurrentNumberSegmentLeft();
   if (currentNum.includes(".")) return;
-  if (
-    cursorIndex === 0 ||
-    isOperator(prev) ||
-    prev === "(" ||
-    prev === "%" ||
-    prev === ","
-  ) {
+  if (!expression || isOperator(prev) || prev === "(" || prev === "%" || prev === ",") {
     insertAtCursor("0.");
     return;
   }
@@ -354,19 +291,17 @@ function insertDot() {
 }
 
 function insertPercent() {
-  const prev = expression[cursorIndex - 1] || "";
-  if (!prev) return;
-  if (isOperator(prev) || prev === "(" || prev === "." || prev === "%" || prev === ",") return;
+  const prev = expression.slice(-1);
+  if (!prev || isOperator(prev) || prev === "(" || prev === "." || prev === "%" || prev === ",") return;
   insertAtCursor("%");
 }
 
 function smartBracket() {
-  const left = expression.slice(0, cursorIndex);
-  const open = (left.match(/\(/g) || []).length;
-  const close = (left.match(/\)/g) || []).length;
-  const prev = left.slice(-1);
+  const open = (expression.match(/\(/g) || []).length;
+  const close = (expression.match(/\)/g) || []).length;
+  const prev = expression.slice(-1);
 
-  if (!left || isOperator(prev) || prev === "(" || prev === ",") {
+  if (!expression || isOperator(prev) || prev === "(" || prev === ",") {
     insertAtCursor("(");
   } else if (open > close && !isOperator(prev) && prev !== "(") {
     insertAtCursor(")");
@@ -376,7 +311,7 @@ function smartBracket() {
 }
 
 function backspaceAtCursor() {
-  if (cursorIndex <= 0) return;
+  if (expression.length === 0) return;
 
   const multiCharTokens = [
     "asinh(", "acosh(", "atanh(",
@@ -388,47 +323,52 @@ function backspaceAtCursor() {
     "√(", "∛(", "0"
   ];
 
-  const left = expression.slice(0, cursorIndex);
   for (const token of multiCharTokens) {
-    if (left.endsWith(token)) {
-      const deleteLen = token.length;
-      expression = expression.slice(0, cursorIndex - deleteLen) + expression.slice(cursorIndex);
-      cursorIndex -= deleteLen;
+    if (expression.endsWith(token)) {
+      expression = expression.slice(0, -token.length);
       renderAfterEdit();
       return;
     }
   }
 
-  expression = expression.slice(0, cursorIndex - 1) + expression.slice(cursorIndex);
-  cursorIndex -= 1;
+  expression = expression.slice(0, -1);
   renderAfterEdit();
 }
 
 function clearAll() {
   expression = "";
-  cursorIndex = 0;
+  if (result) {
+    result.textContent = "0";
+    result.classList.remove("error");
+  }
   lastValidResult = "0";
   syncExpression();
   renderExpression("preserve");
-  updateResult();
 }
 
 /* ===============================
    OPERAND WRAP
 ================================*/
-function findOperandBoundsAroundCursor(expr, index) {
-  if (!expr) return null;
+function wrapCurrentOperand(prefix, suffix = ")") {
+  if (!expression) {
+    insertAtCursor(prefix + suffix);
+    return;
+  }
 
-  if (index > 0 && expr[index - 1] === ")") {
+  let index = expression.length;
+  if (index > 0 && expression[index - 1] === ")") {
     let depth = 0;
     for (let i = index - 1; i >= 0; i--) {
-      if (expr[i] === ")") depth++;
-      else if (expr[i] === "(") {
+      if (expression[i] === ")") depth++;
+      else if (expression[i] === "(") {
         depth--;
         if (depth === 0) {
           let start = i;
-          while (start > 0 && /[a-zA-Z√∛]/.test(expr[start - 1])) start--;
-          return { start, end: index };
+          while (start > 0 && /[a-zA-Z√∛]/.test(expression[start - 1])) start--;
+          const target = expression.slice(start, index);
+          expression = expression.slice(0, start) + prefix + target + suffix;
+          renderAfterEdit();
+          return;
         }
       }
     }
@@ -436,41 +376,18 @@ function findOperandBoundsAroundCursor(expr, index) {
 
   let start = index;
   while (start > 0) {
-    const ch = expr[start - 1];
+    const ch = expression[start - 1];
     if (isOperator(ch) || ch === "(" || ch === ",") break;
     start--;
   }
 
-  let end = index;
-  while (end < expr.length) {
-    const ch = expr[end];
-    if (isOperator(ch) || ch === ")" || ch === ",") break;
-    end++;
-  }
-
-  if (start === end) return null;
-  return { start, end };
-}
-
-function wrapCurrentOperand(prefix, suffix = ")") {
-  const bounds = findOperandBoundsAroundCursor(expression, cursorIndex);
-
-  if (!bounds) {
-    expression = expression.slice(0, cursorIndex) + prefix + suffix + expression.slice(cursorIndex);
-    cursorIndex += prefix.length;
-    renderAfterEdit();
+  if (start === index) {
+    insertAtCursor(prefix + suffix);
     return;
   }
 
-  const target = expression.slice(bounds.start, bounds.end);
-  expression =
-    expression.slice(0, bounds.start) +
-    prefix +
-    target +
-    suffix +
-    expression.slice(bounds.end);
-
-  cursorIndex = bounds.start + prefix.length + target.length + suffix.length;
+  const target = expression.slice(start, index);
+  expression = expression.slice(0, start) + prefix + target + suffix;
   renderAfterEdit();
 }
 
@@ -881,7 +798,6 @@ function finalAnswer() {
 
   setTimeout(() => {
     expression = String(out);
-    cursorIndex = expression.length;
     lastValidResult = formatted;
     syncExpression();
     renderExpression("bottom");
@@ -918,7 +834,7 @@ function setTheme(theme, save = true) {
   document.documentElement.style.backgroundColor = themeColor;
   document.body.style.backgroundColor = themeColor;
 
-if (window.StatusBar) {
+  if (window.StatusBar) {
     StatusBar.backgroundColorByHexString(themeColor);
     if (isLight) {
       StatusBar.styleDefault();
@@ -950,50 +866,7 @@ function closeMenu() {
   menuDropdown?.classList.remove("show");
 }
 
-/* ===============================
-   CURSOR TAP
-================================*/
-function setCursorFromPoint(event) {
-  if (!exprView) return;
 
-  const x = event.clientX;
-  const y = event.clientY;
-
-  let total = 0;
-  let found = false;
-  const walker = document.createTreeWalker(exprView, NodeFilter.SHOW_TEXT);
-
-  if (document.caretPositionFromPoint) {
-    const pos = document.caretPositionFromPoint(x, y);
-    if (pos && pos.offsetNode && exprView.contains(pos.offsetNode)) {
-      while (walker.nextNode()) {
-        const node = walker.currentNode;
-        if (node === pos.offsetNode) {
-          total += pos.offset;
-          found = true;
-          break;
-        }
-        total += node.textContent.length;
-      }
-    }
-  } else if (document.caretRangeFromPoint) {
-    const range = document.caretRangeFromPoint(x, y);
-    if (range && range.startContainer && exprView.contains(range.startContainer)) {
-      while (walker.nextNode()) {
-        const node = walker.currentNode;
-        if (node === range.startContainer) {
-          total += range.startOffset;
-          found = true;
-          break;
-        }
-        total += node.textContent.length;
-      }
-    }
-  }
-
-  cursorIndex = found ? Math.max(0, Math.min(expression.length, total)) : expression.length;
-  renderAfterTap();
-}
 
 /* ===============================
    COPY
@@ -1027,7 +900,7 @@ async function copyResult() {
    HAPTIC
 ================================*/
 function haptic() {
-  try { if (navigator.vibrate) navigator.vibrate(6); } catch {}
+  try { if (navigator.vibrate) navigator.vibrate(6); } catch { }
 }
 
 /* ===============================
@@ -1117,20 +990,7 @@ document.addEventListener("pointerdown", (e) => {
 //   }
 // });
 
-exprView?.addEventListener("pointerdown", (e) => {
-  if (e.pointerType === "mouse") {
-    // e.preventDefault();
-    setCursorFromPoint(e);
-    return;
-  }
 
-  clearTimeout(exprTouchTimer);
-  exprTouchTimer = setTimeout(() => {
-    try {
-      setCursorFromPoint(e);
-    } catch {}
-  }, 180);
-});
 
 document.querySelectorAll(".grid .btn").forEach((btn) => {
   btn.addEventListener("pointerdown", (e) => {
@@ -1176,9 +1036,6 @@ document.querySelectorAll(".sci-btn[data-normal]").forEach((btn) => {
 
     if (value === "(") {
       insertAtCursor("(");
-      insertAtCursor(")");
-      cursorIndex -= 1;
-      renderExpression("preserve");
       closeScientificDrawer();
       return;
     }
@@ -1203,8 +1060,8 @@ document.querySelectorAll(".sci-btn[data-normal]").forEach((btn) => {
 
     if (
       ["abs(", "1/abs(", "sin(", "cos(", "tan(", "asin(", "acos(", "atan(",
-       "ln(", "log(", "exp(", "√(", "∛(", "sinh(", "cosh(", "tanh(",
-       "asinh(", "acosh(", "atanh("].includes(value)
+        "ln(", "log(", "exp(", "√(", "∛(", "sinh(", "cosh(", "tanh(",
+        "asinh(", "acosh(", "atanh("].includes(value)
     ) {
       insertAtCursor(value);
       closeScientificDrawer();
