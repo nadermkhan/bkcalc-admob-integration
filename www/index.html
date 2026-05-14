@@ -13,6 +13,22 @@
   document.documentElement.style.background = bg;
 })();
 </script>
+  <!-- NEW: CSS fix to anchor text to the bottom so it grows upwards -->
+  <style>
+    .expression-wrap {
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important; /* Enables scrolling */
+      /* Removed justify-content: flex-end */
+    }
+    
+    .expression-view {
+      margin-top: auto; /* Pushes content to bottom while keeping top scrollable */
+      min-height: min-content;
+      outline: none;
+    }
+  </style>
+
   <link rel="stylesheet" href="css/index.css" />
   <script src="cordova.js"></script>
   <script src="js/math.min.js"></script>
@@ -36,7 +52,7 @@
     </div>
 
     <div class="display">
-      <div class="expression-wrap">
+      <div class="expression-wrap" id="exprWrap">
         <div id="exprView" class="expression-view" contenteditable="true" inputmode="none" virtualkeyboardpolicy="manual" spellcheck="false"></div>
       </div>
 
@@ -123,5 +139,23 @@
       <button class="sci-btn sci-wide" id="drawerCloseBottom">Close</button>
     </div>
   </div>
+  <!-- NEW: Auto-scroll script to ensure overflow pushes up properly -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const exprWrap = document.getElementById('exprWrap');
+      const exprView = document.getElementById('exprView');
+      
+      // Watches for typing or backspacing and auto-scrolls the wrapper down
+      const observer = new MutationObserver(() => {
+        exprWrap.scrollTop = exprWrap.scrollHeight;
+      });
+      
+      observer.observe(exprView, { 
+        childList: true, 
+        subtree: true, 
+        characterData: true 
+      });
+    });
+  </script>
 </body>
 </html>

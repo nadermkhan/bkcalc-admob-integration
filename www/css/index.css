@@ -293,6 +293,8 @@ html.theme-dark .header .icon-btn{
   scrollbar-width:none;
   -ms-overflow-style:none;
   outline: none !important;
+  caret-color: transparent;
+  padding-bottom: 25px !important;
 }
 
 .expr-line{

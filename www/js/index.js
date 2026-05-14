@@ -202,31 +202,31 @@ function fitExpressionText() {
   }
 }
 
+// NEW: Function to restore the blinking cursor at the end of the text
+function moveCursorToEnd() {
+  if (!exprView) return;
+  exprView.focus(); // Keep focus alive
+  if (typeof window.getSelection !== "undefined" && typeof document.createRange !== "undefined") {
+    const range = document.createRange();
+    range.selectNodeContents(exprView);
+    range.collapse(false); // false collapses the range to the end
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
 function renderExpression(mode = "preserve") {
   if (!exprView) return;
   const previousScrollTop = exprView.scrollTop;
   fitExpressionText();
   exprView.innerHTML = buildExpressionHTML();
-  requestAnimationFrame(() => {
-    exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight : previousScrollTop;
-    moveCaretToEnd();
-  });
-}
+  
+  moveCursorToEnd(); // Re-apply the cursor after we wipe the innerHTML
 
-function moveCaretToEnd() {
-  if (!exprView) return;
-  
-  // Create a range that selects the contents of our math view
-  const range = document.createRange();
-  const selection = window.getSelection();
-  
-  range.selectNodeContents(exprView);
-  // collapse(false) means "collapse the selection to the END of the range"
-  range.collapse(false); 
-  
-  // Apply the new cursor position
-  selection.removeAllRanges();
-  selection.addRange(range);
+  setTimeout(() => {
+    exprView.scrollTop = mode === "bottom" ? exprView.scrollHeight + 100 : previousScrollTop;
+  }, 10);
 }
 
 function renderAfterEdit() {
@@ -272,10 +272,9 @@ function setResultText(value) {
 ================================*/
 function clearIfSelected() {
   const selection = window.getSelection();
-  // Check if the user has highlighted text in the calculator
   if (selection.toString().trim().length > 0) {
-    expression = ""; // Erase the old equation
-    selection.removeAllRanges(); // Dismiss the native OS highlight
+    expression = "";
+    selection.removeAllRanges();
   }
 }
 
@@ -893,8 +892,6 @@ function closeMenu() {
   menuDropdown?.classList.remove("show");
 }
 
-
-
 /* ===============================
    COPY
 ================================*/
@@ -933,16 +930,13 @@ function haptic() {
 /* ===============================
    EVENTS
 ================================*/
-// Target specifically the copy icon inside the container
 const actualCopyIcon = document.querySelector(".copy-icon");
 
 actualCopyIcon?.addEventListener("pointerdown", (e) => {
-  e.stopPropagation(); // Prevents the click from interfering with anything else
+  e.stopPropagation();
   haptic();
   copyResult();
 });
-
-// copyResultBtn?.addEventListener("contextmenu", (e) => e.preventDefault());
 
 menuBtn?.addEventListener("pointerdown", (e) => {
   e.preventDefault();
@@ -959,6 +953,7 @@ let backspaceLongTimer = null;
 backspaceBtn?.addEventListener("pointerdown", (e) => {
   e.preventDefault();
   haptic();
+  // REmoved exprView?.blur();
   backspaceAtCursor();
 
   backspaceLongTimer = setTimeout(() => {
@@ -1011,18 +1006,11 @@ document.addEventListener("pointerdown", (e) => {
   }
 });
 
-// document.addEventListener("contextmenu", (e) => {
-//   if (result?.contains(e.target) || copyResultBtn?.contains(e.target)) {
-//     e.preventDefault();
-//   }
-// });
-
-
-
 document.querySelectorAll(".grid .btn").forEach((btn) => {
   btn.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     haptic();
+    // Removed exprView?.blur();
 
     const insert = btn.dataset.insert;
     const action = btn.dataset.action;
@@ -1140,15 +1128,11 @@ exprView?.addEventListener("paste", (e) => {
   const pastedText = (e.clipboardData || window.clipboardData).getData("text");
   if (pastedText) {
     const cleanText = pastedText.replace(/[^0-9\.+\-×÷\*\/\(\)\^\%]/g, "");
-    
-    // Check for Select All / Highlighted text and clear it first
     clearIfSelected();
-    
     insertAtCursor(cleanText);
   }
 });
 
-// Optional: Prevent hardware keyboards from messing up the state since we use buttons
 exprView?.addEventListener("keydown", (e) => {
   if (!e.metaKey && !e.ctrlKey) {
     e.preventDefault();
