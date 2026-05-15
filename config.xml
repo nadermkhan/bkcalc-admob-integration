@@ -1,4 +1,4 @@
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" id="com.saiftypo.bkscalc" version="2.5.3" android-versionCode="10">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" id="com.saiftypo.bkscalc" version="2.5.4" android-versionCode="11">
 <name>Bkcalc</name>
 <description>Smart calculator app</description>
 <author email="mdsaifuddintrd321st@gmail.com" href="https://github.com/yourgithub"> Bkcalc </author>
@@ -26,6 +26,9 @@
 <preference name="NavigationBarBackgroundColor" value="#f5f7fb"/>
 <preference name="NavigationBarLight" value="true"/>
 <icon src="www/m-logo.png"/>
+<config-file target="AndroidManifest.xml" parent="/manifest" xmlns:android="http://schemas.android.com/apk/res/android">
+        <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    </config-file>
 </platform>
 <preference name="DisallowOverscroll" value="true"/>
 <preference name="BackupWebStorage" value="none"/>
