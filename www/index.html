@@ -4,30 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>WhatsApp Calc</title>
-<meta name="theme-color" content="#000000" id="themeColorMeta" />
-<script>(function () {
-  const savedTheme = localStorage.getItem("calc_theme") || "theme-light";
-  document.documentElement.classList.add(savedTheme);
-  const bg = savedTheme === "theme-dark" ? "#000000" : "#f5f7fb";
-  document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.background = bg;
-})();
-</script>
-  <!-- NEW: CSS fix to anchor text to the bottom so it grows upwards -->
-  <style>
-    .expression-wrap {
-      display: flex !important;
-      flex-direction: column !important;
-      overflow-y: auto !important; /* Enables scrolling */
-      /* Removed justify-content: flex-end */
-    }
-    
-    .expression-view {
-      margin-top: auto; /* Pushes content to bottom while keeping top scrollable */
-      min-height: min-content;
-      outline: none;
-    }
-  </style>
+  <meta name="theme-color" content="#000000" id="themeColorMeta" />
+
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("calc_theme") || "theme-light";
+      document.documentElement.classList.add(savedTheme);
+      const bg = savedTheme === "theme-dark" ? "#000000" : "#f5f7fb";
+      document.documentElement.style.backgroundColor = bg;
+      document.documentElement.style.background = bg;
+    })();
+  </script>
 
   <link rel="stylesheet" href="css/index.css" />
   <script src="cordova.js"></script>
@@ -35,12 +22,13 @@
   <script src="js/index.js" defer></script>
   <script src="js/nader-ads.js"></script>
 </head>
+
 <body>
   <div class="app">
     <div class="header">
       <button class="icon-btn" id="menuBtn">☰</button>
 
-      <div class="title-wrap" style="justify-content:center;">
+      <div class="title-wrap">
         <a class="page-btn" href="whatsApp.html">BKs Nmbr Hisab</a>
       </div>
 
@@ -53,7 +41,17 @@
 
     <div class="display">
       <div class="expression-wrap" id="exprWrap">
-        <div id="exprView" class="expression-view" spellcheck="false"></div>
+        <div
+          id="exprView"
+          class="expression-view"
+          contenteditable="true"
+          inputmode="none"
+          virtualkeyboardpolicy="manual"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          enterkeyhint="done"
+        ></div>
       </div>
 
       <div class="result-box">
@@ -139,23 +137,5 @@
       <button class="sci-btn sci-wide" id="drawerCloseBottom">Close</button>
     </div>
   </div>
-  <!-- NEW: Auto-scroll script to ensure overflow pushes up properly -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const exprWrap = document.getElementById('exprWrap');
-      const exprView = document.getElementById('exprView');
-      
-      // Watches for typing or backspacing and auto-scrolls the wrapper down
-      const observer = new MutationObserver(() => {
-        exprWrap.scrollTop = exprWrap.scrollHeight;
-      });
-      
-      observer.observe(exprView, { 
-        childList: true, 
-        subtree: true, 
-        characterData: true 
-      });
-    });
-  </script>
 </body>
 </html>

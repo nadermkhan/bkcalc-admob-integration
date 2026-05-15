@@ -4,89 +4,127 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <script src="../cordova.js"></script>
-  <title>WhatsApp Calculator</title>
+  <title>Bkash Calculator</title>
   <meta name="theme-color" content="#16a34a">
+
   <script>
-document.addEventListener("deviceready", function () {
-  if (window.StatusBar) {
-    StatusBar.backgroundColorByHexString("#16a34a");
-    StatusBar.styleLightContent();
-  }
-  if (window.NavigationBar) {
-    NavigationBar.backgroundColorByHexString("#000000", false);
-  }
-}, false); 
- </script>
+    document.addEventListener("deviceready", function () {
+      if (window.StatusBar) {
+        StatusBar.backgroundColorByHexString("#16a34a");
+        StatusBar.styleLightContent();
+      }
+      if (window.NavigationBar) {
+        NavigationBar.backgroundColorByHexString("#16a34a", false);
+      }
+    }, false);
+  </script>
+
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    html,body{min-height:100%;width:100%}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    html,body{
+      min-height:100%;
+      width:100%;
+    }
+
+    :root{
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --nav-h:64px;
+      --shadow-sm:0 2px 8px rgba(2,6,23,.08);
+      --shadow-md:0 8px 18px rgba(2,6,23,.12);
+      --shadow-lg:0 14px 28px rgba(2,6,23,.14);
+      --shadow-2xl:0 18px 40px rgba(2,6,23,.18);
+      --green-1:#16a34a;
+      --green-2:#06b14f;
+      --text-soft:#334155;
+      --text-main:#111827;
+    }
+
     body{
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Bengali","Hind Siliguri",sans-serif;
       padding-top:calc(var(--nav-h) + var(--safe-top));
+      padding-bottom:calc(12px + var(--safe-bottom));
       background:#f3f4f6;
       color:#111827;
     }
-    :root{
-      --safe-top: env(safe-area-inset-top, 0px);
-      --nav-h: 64px;
-      --shadow-sm: 0 2px 8px rgba(2,6,23,.08);
-      --shadow-md: 0 8px 18px rgba(2,6,23,.12);
-      --shadow-lg: 0 14px 28px rgba(2,6,23,.14);
-      --shadow-2xl: 0 18px 40px rgba(2,6,23,.18);
+
+    #input::placeholder{
+      font-family:"Courier New", Courier, monospace;
+      font-size:.84rem;
+      line-height:1.35;
+      color:#475569;
+      font-weight:500;
+      letter-spacing:0;
     }
-#input::placeholder{
-  font-family: "Courier New", Courier, monospace;
-  font-size: 0.92rem;
-  line-height: 1.7;
-  color: rgba(15,23,42,.38);
-  letter-spacing: 0.01em;
-}
+
     .appbar{
-      position:fixed;top:0;left:0;right:0;z-index:9999;
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      z-index:9999;
       padding-top:var(--safe-top);
-      background:linear-gradient(90deg,#16a34a,#06b14f);
+      background:linear-gradient(90deg,var(--green-1),var(--green-2));
       box-shadow:0 10px 28px rgba(2,6,23,.18);
-      border-bottom-left-radius:50px;
-      border-bottom-right-radius:50px;
+      border-bottom-left-radius:38px;
+      border-bottom-right-radius:38px;
     }
-   .appbar-inner{
-  height: var(--nav-h);
-  justify-content: space-between;
-  padding: 0 15px;
-  line-height: 1;
-}
+
+    .appbar-inner{
+      height:var(--nav-h);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 15px;
+      line-height:1;
+    }
+
     .page{
       max-width:32rem;
       margin:0 auto;
-      padding:12px;
+      padding:9px;
       display:flex;
       flex-direction:column;
-      gap:16px;
+      gap:12px;
     }
 
     label{
       display:block;
-      margin-bottom:4px;
+      margin-bottom:7px;
       font-weight:700;
-      color:#111827;
+      color:#1f2937;
+      font-size:.9rem;
     }
 
     .hint-card,.results-container,.calc-card{
       background:#fff;
       border:1px solid #e5e7eb;
       border-radius:16px;
-      box-shadow:var(--shadow-lg);
+      box-shadow:var(--shadow-md);
     }
 
     .hint-card{
-      font-size:.875rem;
-      line-height:1.45;
+      font-size:.78rem;
+      line-height:1.35;
       text-align:center;
-      padding:12px;
+      padding:9px 11px;
+      color:#334155;
+      font-weight:500;
+      letter-spacing:0;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      box-shadow:var(--shadow-sm);
     }
 
-    .space-y-2 > * + *{margin-top:8px}
-    .space-y-3 > * + *{margin-top:12px}
+    .space-y-2 > * + *{margin-top:7px}
+    .space-y-3 > * + *{margin-top:10px}
 
     textarea,input{
       width:100%;
@@ -94,270 +132,479 @@ document.addEventListener("deviceready", function () {
       outline:none;
       background:#fff;
       color:#111827;
-      transition:border-color .2s ease,box-shadow .2s ease;
+      transition:border-color .2s ease,box-shadow .2s ease, transform .12s ease;
     }
 
     textarea:focus,input:focus{
-      box-shadow:0 0 0 2px rgba(59,130,246,.45);
-      border-color:#3b82f6;
+      box-shadow:0 0 0 3px rgba(59,130,246,.16);
+      border-color:#60a5fa;
     }
 
-    /* ── Paste Zone ── */
     .paste-zone-wrapper{
       position:relative;
-      border-radius:16px;
+      border-radius:14px;
       background:#fff;
-      border:2.5px dashed #22c55e;
-      box-shadow:var(--shadow-lg);
+      border:2px dashed #22c55e;
+      box-shadow:var(--shadow-md);
       transition:border-color .2s, box-shadow .2s, background .2s;
       overflow:hidden;
     }
+
     .paste-zone-wrapper:focus-within{
       border-color:#3b82f6;
       border-style:solid;
-      box-shadow:0 0 0 3px rgba(59,130,246,.22), var(--shadow-lg);
-      background:#f0f9ff;
+      box-shadow:0 0 0 3px rgba(59,130,246,.14), var(--shadow-md);
+      background:#f8fafc;
     }
+
     .paste-header{
       display:flex;
-      flex-direction:row;
       align-items:center;
       justify-content:center;
-      gap:8px;
+      gap:7px;
       background:#fff;
-      padding:10px 14px;
+      padding:7px 10px;
       border-bottom:1px solid #e5e7eb;
       transition:background .2s;
     }
+
     .paste-zone-wrapper:focus-within .paste-header{
       background:#f0fdf4;
     }
+
     .paste-header-icon{
-      font-size:1.2rem;
+      font-size:1rem;
       line-height:1;
     }
+
     .paste-header-text{
       color:#16a34a;
-      font-weight:800;
-      font-size:1rem;
-      letter-spacing:.01em;
+      font-weight:700;
+      font-size:.88rem;
+      letter-spacing:0;
     }
-    .paste-header-hint{ display:none; }
+
+    .paste-header-hint{display:none}
+
     .big-paste{
-      min-height:280px;
+      min-height:170px;
       border:none !important;
       box-shadow:none !important;
       border-radius:0 !important;
       background:transparent !important;
-      padding:10px 12px !important;
+      padding:9px 10px !important;
       resize:vertical;
-      line-height:1.3 !important;
-      font-weight:700;
+      line-height:1.22 !important;
+      font-weight:500;
+      font-size:.86rem;
+      color:#334155;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      overflow-x:hidden;
     }
+
     .paste-footer{
       display:flex;
       flex-direction:column;
       align-items:stretch;
-      gap:8px;
-      padding:8px 12px 10px;
+      gap:7px;
+      padding:7px 10px 9px;
       border-top:1px solid #e5e7eb;
       background:#f9fafb;
     }
+
     .paste-footer-tip{
-      font-size:.7rem;
-      color:#6b7280;
-      font-weight:600;
+      font-size:.68rem;
+      color:#64748b;
+      font-weight:500;
       text-align:center;
+      line-height:1.25;
     }
+
     .paste-btn{
       display:flex;
       align-items:center;
       justify-content:center;
       gap:6px;
-      background:linear-gradient(90deg,#16a34a,#06b14f);
+      background:linear-gradient(90deg,var(--green-1),var(--green-2));
       color:#fff;
       border:none;
-      border-radius:10px;
-      padding:10px 14px;
-      font-size:.9rem;
-      font-weight:800;
+      border-radius:11px;
+      padding:10px 13px;
+      font-size:.86rem;
+      font-weight:700;
       cursor:pointer;
       width:100%;
-      box-shadow:0 2px 8px rgba(22,163,74,.35);
+      box-shadow:0 2px 8px rgba(22,163,74,.30);
       transition:transform .1s, filter .15s;
     }
+
     .paste-btn:active{transform:scale(.97)}
     .paste-btn:hover{filter:brightness(1.07)}
-    /* ── End Paste Zone ── */
 
     .input-small{
-      padding:10px;
+      padding:10px 11px;
       border-radius:12px;
-      font-size:.95rem;
-      box-shadow:var(--shadow-md);
-    }
-    .input-calc{
-      padding:12px;
-      border-radius:12px;
-      font-size:1.125rem;
-      font-weight:800;
-      box-shadow:var(--shadow-md);
-      resize:none;
+      font-size:.86rem;
+      box-shadow:var(--shadow-sm);
+      font-weight:500;
+      color:#334155;
     }
 
     .ph-medium::placeholder{
-      font-size:.98rem;
+      font-size:.82rem;
       font-weight:500;
-      color:rgba(15,23,42,.55);
+      color:rgba(51,65,85,.55);
     }
 
     .checkbox-card{
       display:flex;
       align-items:center;
-      gap:12px;
-      font-size:.875rem;
-      color:#111827;
+      gap:10px;
+      font-size:.84rem;
+      color:#334155;
       background:#eff6ff;
-      padding:12px;
-      border-radius:16px;
-      box-shadow:var(--shadow-md);
+      padding:11px;
+      border-radius:14px;
+      box-shadow:var(--shadow-sm);
       cursor:pointer;
       transition:background-color .2s ease;
     }
+
     .checkbox-card:hover{background:#dbeafe}
+
     .checkbox-card input{
-      width:20px;height:20px;accent-color:#3b82f6;flex:0 0 auto;
+      width:18px;
+      height:18px;
+      accent-color:#3b82f6;
+      flex:0 0 auto;
     }
-    .checkbox-card span{font-weight:700;font-size:1rem}
+
+    .checkbox-card span{
+      font-weight:600;
+      font-size:.88rem;
+    }
 
     .btn-row{
       display:flex;
       flex-wrap:wrap;
-      gap:12px;
+      gap:10px;
     }
+
     .btn{
       appearance:none;
       border:none;
       cursor:pointer;
       font-weight:700;
-      border-radius:16px;
-      padding:15px 16px;
+      border-radius:14px;
+      padding:13px 14px;
       color:#fff;
-      box-shadow:var(--shadow-md);
+      box-shadow:var(--shadow-sm);
       transition:transform .12s ease,filter .2s ease;
       position:relative;
       overflow:hidden;
+      font-size:.88rem;
     }
+
     .btn:active{transform:scale(.98)}
     .btn.flex-1{flex:1 1 120px}
     .btn.w-full{width:100%}
+
     .btn-blue{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
     .btn-gray{background:linear-gradient(90deg,#d1d5db,#9ca3af);color:#111827}
-    .btn-green{background:linear-gradient(90deg,#22c55e,#15803d)}
-    .btn-blue:hover,.btn-green:hover{filter:brightness(1.05)}
+    .btn-blue:hover{filter:brightness(1.05)}
 
     .results-container{padding:12px}
-    .results-title{font-weight:800;margin-bottom:8px;font-size:1rem}
-    .results-body{font-size:.875rem;font-weight:600;color:#111827}
+    .results-title{font-weight:700;margin-bottom:7px;font-size:.9rem;color:#334155}
+    .results-body{font-size:.8rem;font-weight:500;color:#334155}
 
-    .calc-card{padding:12px}
-    .center-title{
+    .calc-card{
+      padding:9px;
+      background:#fff;
+      border-radius:16px;
+      box-shadow:var(--shadow-md);
+      border:1px solid #e5e7eb;
+    }
+
+    .calc-head{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:3px 4px 7px;
+    }
+
+    .calc-head-title{
       text-align:center;
-      font-size:1rem;
-      font-weight:800;
-      color:#111827;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      font-size:.95rem;
+      font-weight:700;
+      color:#334155;
     }
 
     .calc-grid{
       display:flex;
       flex-direction:column;
       gap:8px;
-      align-items:center;
+      width:100%;
+      align-items:stretch;
     }
-    .calc-field{width:99%}
+
+    .calc-field{
+      width:100%;
+      padding:0;
+      margin:0;
+      background:transparent;
+      border:none;
+      border-radius:0;
+      box-shadow:none;
+    }
+
+    .calc-field label{
+      margin-bottom:5px;
+      font-size:.82rem;
+      font-weight:700;
+      color:#334155;
+    }
+
+    .calc-date-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      width:100%;
+      background:#fff;
+      border:1px solid #d1d5db;
+      border-radius:12px;
+      padding:7px 9px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .calc-date-icon{
+      width:30px;
+      height:30px;
+      border-radius:9px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#fef3c7;
+      font-size:.9rem;
+      flex:0 0 auto;
+    }
+
+    .calc-date-input{
+      border:none;
+      box-shadow:none !important;
+      background:transparent;
+      font-size:.86rem;
+      font-weight:600;
+      padding:0;
+      color:#334155;
+    }
+
+    .calc-date-input::placeholder{
+      color:#94a3b8;
+      font-weight:500;
+    }
+
+    .calc-input-wrap{
+      position:relative;
+      width:100%;
+    }
+
+    .input-calc{
+      width:100% !important;
+      min-height:88px;
+      padding:9px 42px 9px 9px;
+      border-radius:12px;
+      font-size:.92rem;
+      font-weight:500;
+      line-height:1.22;
+      resize:vertical;
+      background:#fff;
+      box-shadow:var(--shadow-sm);
+      color:#334155;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      overflow-x:hidden;
+    }
+
+    .plus-side-btn{
+      position:absolute;
+      right:7px;
+      top:7px;
+      width:32px;
+      height:32px;
+      border:none;
+      border-radius:10px;
+      background:linear-gradient(135deg,#16a34a,#06b14f);
+      color:#fff;
+      font-size:22px;
+      font-weight:700;
+      line-height:1;
+      box-shadow:0 6px 14px rgba(22,163,74,.22);
+      cursor:pointer;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .plus-side-btn:active{transform:scale(.96)}
+
     .calc-actions{
       display:flex;
-      justify-content:space-between;
-      gap:16px;
-      margin-top:16px;
+      gap:10px;
+      margin-top:4px;
     }
-    .calc-actions .btn{flex:1}
-    .btn-blue-soft{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
-    .btn-gray-soft{background:linear-gradient(90deg,#9ca3af,#6b7280)}
 
-    .summary-box{
-      background:#f3f4f6;
-      padding:20px;
-      border-radius:16px;
-      box-shadow:inset 0 2px 10px rgba(2,6,23,.08);
-      margin-top:16px;
+    .calc-actions .btn{
+      flex:1;
+      border-radius:13px;
+      font-size:.84rem;
+      padding:12px 13px;
+    }
+
+    .btn-blue-soft{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}
+    .btn-gray-soft{background:linear-gradient(90deg,#b0b7c3,#7b8594)}
+
+    .mini-result-card{
+      background:linear-gradient(180deg,#fcfcfd 0%, #f4f6f9 100%);
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:9px;
+      box-shadow:var(--shadow-sm);
       display:flex;
       flex-direction:column;
-      gap:12px;
-    }
-    .summary-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
+      gap:6px;
     }
 
-    .copy-mini{
+    .mini-result-title{
+      font-size:.8rem;
+      font-weight:700;
+      color:#334155;
+      margin-bottom:1px;
+    }
+
+    .mini-result-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:11px;
+      padding:7px 9px;
+    }
+
+    .mini-result-text{
+      font-size:.74rem;
+      line-height:1.18;
+      color:#334155;
+      font-weight:500;
+      word-break:break-word;
+      flex:1;
+    }
+
+    .mini-copy-btn{
       border:none;
       cursor:pointer;
-      font-size:.75rem;
-      padding:4px 8px;
-      border-radius:6px;
+      font-size:.66rem;
+      padding:5px 8px;
+      border-radius:9px;
       font-weight:700;
-      transition:transform .08s ease;
+      color:#fff;
+      background:linear-gradient(90deg,#0ea5e9,#2563eb);
+      white-space:nowrap;
+      box-shadow:0 4px 10px rgba(37,99,235,.18);
     }
-    .copy-mini:active{transform:scale(.98)}
-    .copy-blue{background:#dbeafe;color:#1e3a8a}
-    .copy-green{background:#dcfce7;color:#166534}
-    .copy-purple{background:#f3e8ff;color:#581c87}
 
-    .text-main{color:#111827}
-    .text-red{color:#b91c1c}
-    .text-red-soft{color:#b91c1c}
+    .mini-copy-btn:active{transform:scale(.97)}
 
-    .font-bold{font-weight:700}
-    .font-extrabold{font-weight:800}
-    .text-xs{font-size:.75rem}
-    .text-sm{font-size:.875rem}
-    .text-base{font-size:1rem}
-    .text-lg{font-size:1.125rem}
-    .text-xl{font-size:1.25rem}
-    .mt-1{margin-top:4px}
-    .mt-2{margin-top:8px}
-    .mt-3{margin-top:12px}
-    .mb-1{margin-bottom:4px}
+    .print-result-box{
+      margin-top:2px;
+      background:linear-gradient(180deg,#ffffff 0%, #f8fafc 100%);
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      padding:10px;
+      box-shadow:var(--shadow-sm);
+    }
 
-    .force-black{color:#0b1220 !important}
-    .force-black *{color:#0b1220 !important}
+    .print-result-title{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      font-weight:700;
+      font-size:.86rem;
+      margin-bottom:5px;
+      color:#334155;
+    }
+
+    .print-result-sub{
+      font-size:.7rem;
+      color:#64748b;
+      font-weight:500;
+      margin-bottom:7px;
+      line-height:1.25;
+    }
+
+    .print-result-text{
+      white-space:pre-wrap;
+      word-break:normal;
+      overflow-wrap:break-word;
+      font-family:"Noto Sans Bengali","Hind Siliguri",system-ui,sans-serif;
+      font-size:12.8px;
+      font-weight:500;
+      line-height:1.38;
+      color:#334155;
+      background:#ffffff;
+      border:1px dashed #cbd5e1;
+      border-radius:10px;
+      padding:10px;
+      min-height:130px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .copy-print-btn{
+      margin-top:10px;
+      width:100%;
+      border:none;
+      border-radius:12px;
+      padding:12px;
+      background:linear-gradient(90deg,#16a34a,#15803d);
+      color:#fff;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(22,163,74,.24);
+    }
+
+    .copy-print-btn:active{transform:scale(.98)}
+
+    .force-black{color:#334155 !important}
+    .force-black *{color:#334155 !important}
 
     .inline-scroll-wrap{
       overflow-x:auto;
       overflow-y:hidden;
       -webkit-overflow-scrolling:touch;
       border:1px solid #d1d5db;
-      border-radius:10px;
+      border-radius:9px;
       background:#f9fafb;
-      padding:6px 8px;
+      padding:5px 7px;
     }
+
     .inline-row{
       white-space:nowrap;
       min-width:max-content;
-      font-weight:700;
-      line-height:1.6;
-      font-size:12px;
+      font-weight:500;
+      line-height:1.45;
+      font-size:11px;
+      color:#334155;
     }
-    .inline-scroll-wrap::-webkit-scrollbar{height:7px}
+
+    .inline-scroll-wrap::-webkit-scrollbar{height:6px}
     .inline-scroll-wrap::-webkit-scrollbar-thumb{
-      background:rgba(100,116,139,.45);
+      background:rgba(100,116,139,.4);
       border-radius:999px;
     }
 
@@ -365,31 +612,33 @@ document.addEventListener("deviceready", function () {
       background:#fef2f2;
       border:1px solid #fecaca;
       border-radius:10px;
-      padding:10px;
-      font-size:.75rem;
+      padding:9px;
+      font-size:.72rem;
       display:flex;
       flex-direction:column;
       gap:6px;
     }
 
     .item-box{
-      border-radius:20px;
+      border-radius:16px;
       border:1px solid #e5e7eb;
       background:#f9fafb;
-      padding:10px;
+      padding:9px;
       box-shadow:var(--shadow-sm);
     }
 
     .status-ok,.status-fail{
       border-radius:10px;
-      padding:12px;
+      padding:10px;
       border:1px solid;
     }
+
     .status-ok{
       background:#f0fdf4;
       border-color:#bbf7d0;
       color:#15803d;
     }
+
     .status-fail{
       background:#fef2f2;
       border-color:#fecaca;
@@ -397,12 +646,12 @@ document.addEventListener("deviceready", function () {
     }
 
     .pill-total{
-      margin-top:12px;
-      padding:8px 12px;
-      border-radius:12px;
+      margin-top:10px;
+      padding:7px 10px;
+      border-radius:11px;
       box-shadow:var(--shadow-sm);
-      font-weight:800;
-      font-size:1.25rem;
+      font-weight:700;
+      font-size:.95rem;
       background:#f0fdf4;
       color:#15803d;
     }
@@ -417,7 +666,9 @@ document.addEventListener("deviceready", function () {
       background:rgba(0,0,0,.5);
       padding:16px;
     }
+
     .modal-backdrop.show{display:flex}
+
     .modal-card{
       width:100%;
       max-width:28rem;
@@ -426,11 +677,14 @@ document.addEventListener("deviceready", function () {
       box-shadow:var(--shadow-2xl);
       border:1px solid #e5e7eb;
     }
+
     .modal-head{
       padding:12px;
       border-bottom:1px solid #e5e7eb;
     }
+
     .modal-body{padding:12px}
+
     .modal-actions{
       padding:12px;
       padding-top:0;
@@ -438,15 +692,17 @@ document.addEventListener("deviceready", function () {
       gap:12px;
       justify-content:flex-end;
     }
+
     .btn-cancel{
       padding:8px 16px;
       border-radius:12px;
       border:none;
       cursor:pointer;
       background:#e5e7eb;
-      color:#111827;
-      font-weight:700;
+      color:#334155;
+      font-weight:600;
     }
+
     .btn-save{
       padding:8px 16px;
       border-radius:12px;
@@ -454,10 +710,14 @@ document.addEventListener("deviceready", function () {
       cursor:pointer;
       background:#2563eb;
       color:#fff;
-      font-weight:700;
+      font-weight:600;
     }
 
-    .ripple{position:relative;overflow:hidden}
+    .ripple{
+      position:relative;
+      overflow:hidden;
+    }
+
     .ripple span{
       position:absolute;
       border-radius:50%;
@@ -466,21 +726,93 @@ document.addEventListener("deviceready", function () {
       background-color:rgba(255,255,255,0.6);
       pointer-events:none;
     }
-    @keyframes ripple{to{transform:scale(3.5);opacity:0}}
+
+    @keyframes ripple{
+      to{transform:scale(3.5);opacity:0}
+    }
+
+    .bottom-ad-wrap{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin-top:3px;
+      margin-bottom:7px;
+    }
+
+    .bottom-ad-box{
+      width:320px;
+      height:25px;
+      max-width:calc(100vw - 16px);
+      background:#e5e7eb;
+      border:1px solid #d1d5db;
+      border-radius:8px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+      font-weight:600;
+      color:#64748b;
+      box-shadow:0 4px 14px rgba(2,6,23,.10);
+    }
 
     @media (max-width:480px){
-      .page{padding:10px}
-      .btn-row{gap:10px}
-      .calc-actions{gap:10px}
+      .page{padding:9px}
+      .btn-row{gap:9px}
+      .calc-actions{gap:9px}
+      .input-calc{font-size:.9rem}
+
+      .calc-head-title{
+        font-size:.94rem;
+      }
+
+      .hint-card{
+        font-size:.76rem;
+        line-height:1.32;
+        padding:8px 10px;
+        font-weight:500;
+        color:#334155;
+      }
+
+      .paste-header{
+        padding:7px 10px;
+      }
+
+      .paste-header-text{
+        font-size:.86rem;
+        font-weight:700;
+      }
+
+      .big-paste{
+        min-height:165px;
+        font-size:.84rem;
+        line-height:1.2 !important;
+        font-weight:500;
+        color:#334155;
+      }
+
+      .print-result-text{
+        font-size:12.5px;
+        line-height:1.35;
+        font-weight:500;
+        min-height:125px;
+        color:#334155;
+      }
+
+      .print-result-title{
+        font-size:.84rem;
+      }
     }
   </style>
-    <script src="js/nader-ads.js"></script>
+
+  <script src="js/nader-ads.js"></script>
 </head>
 
 <body>
   <nav class="appbar">
     <div class="appbar-inner">
-      <h1 class="font-extrabold text-lg" style="tracking-wide;color:#fff">📱 WhatsApp Calculator</h1>
+      <h1 style="color:#fff;font-size:1.18rem;font-weight:900;">📱 Bkash Calculator</h1>
       <div style="width:24px"></div>
     </div>
   </nav>
@@ -488,36 +820,35 @@ document.addEventListener("deviceready", function () {
   <div class="page">
     <p class="hint-card">
       WhatsApp থেকে নাম্বার ও এমাউন্টসহ সব একসাথে কপি করে এখানে পেস্ট করুন।
-তারপর Result বাটনে চাপ দিন — অ্যাপ নিজে নিজে হিসাব করে দিবে।
-
-
-নোট: কোনো নাম্বার বা এমাউন্টে সমস্যা/মিসম্যাচ থাকলে নিচে Warning দেখাবে এবং Edit অপশন থাকবে।
+      তারপর Result বাটনে চাপ দিন — অ্যাপ নিজে নিজে হিসাব করে দিবে।
+      <br><br>
+      নোট: কোনো নাম্বার বা এমাউন্টে সমস্যা/মিসম্যাচ থাকলে নিচে Warning দেখাবে এবং Edit অপশন থাকবে।
     </p>
 
     <div class="space-y-2">
       <div>
-        <!-- ── Improved Paste Zone ── -->
         <div class="paste-zone-wrapper" onclick="document.getElementById('input').focus()">
           <div class="paste-header">
             <span class="paste-header-icon">📋</span>
             <span class="paste-header-text">এখানে পেস্ট করুন</span>
             <span class="paste-header-hint">👆 ট্যাপ করুন &amp; পেস্ট করুন</span>
           </div>
-          <textarea id="input" rows="7"
+
+          <textarea id="input" rows="7" wrap="soft"
             placeholder="01731938139 = 10,200
 01716189060 = 40,800
 +8801820028781 = 8,160
 008801783904821 = 20,400
 01645231870 = 15,300"
             class="big-paste ph-medium"></textarea>
+
           <div class="paste-footer">
-            <span class="paste-footer-tip">💡 WhatsApp চ্যাট সিলেক্ট করে কপি করুন, তারপর এখানে ট্যাপ করে পেস্ট করুন</span>
+            <span class="paste-footer-tip">💡 চ্যাট সিলেক্ট করে কপি করুন, তারপর এখানে ট্যাপ করে পেস্ট করুন</span>
             <button type="button" class="paste-btn ripple" onclick="event.stopPropagation();pasteFromClipboard()">
               <span>📋</span> Paste
             </button>
           </div>
         </div>
-        <!-- ── End Paste Zone ── -->
       </div>
 
       <div>
@@ -536,16 +867,16 @@ document.addEventListener("deviceready", function () {
       </div>
     </div>
 
+    <div class="btn-row">
+      <button id="parseBtn" class="btn btn-blue ripple flex-1">✅ Result</button>
+      <button id="clearBtn" class="btn btn-gray ripple flex-1">🗑️ Clear</button>
+    </div>
+
     <div>
       <label class="checkbox-card">
         <input type="checkbox" id="toggleTotal">
         <span>Highly Check</span>
       </label>
-    </div>
-
-    <div class="btn-row">
-      <button id="parseBtn" class="btn btn-blue ripple flex-1">✅ Result</button>
-      <button id="clearBtn" class="btn btn-gray ripple flex-1">🗑️ Clear</button>
     </div>
 
     <div id="resultsContainer" class="results-container">
@@ -556,54 +887,84 @@ document.addEventListener("deviceready", function () {
     </div>
 
     <section class="calc-card space-y-3">
-      <p class="center-title">💰 যোগ-বিয়োগ ক্যালকুলেটর</p>
+      <div class="calc-head">
+        <div class="calc-head-title">💰 যোগ-বিয়োগ ক্যালকুলেটর</div>
+      </div>
 
       <div class="calc-grid">
-        <div class="calc-field">
-          <label for="bikash">বিকাশ / ব্যাংক:</label>
-          <textarea id="bikash" rows="3" placeholder="10000+20000+50000+" class="ph-medium input-calc"></textarea>
+        <div class="calc-date-wrap">
+          <div class="calc-date-icon">📅</div>
+          <input id="hisabDate" type="text" class="calc-date-input" placeholder="10/05/2026">
         </div>
 
         <div class="calc-field">
-          <label for="joma">জমা:</label>
-          <textarea id="joma" rows="3" placeholder="5000+100+8000" class="ph-medium input-calc"></textarea>
+          <label for="bikash">বিকাশ / ব্যাংক:</label>
+          <div class="calc-input-wrap">
+            <textarea id="bikash" rows="5" wrap="soft" placeholder="বিকাশ = 51000&#10;রবিউল = 9000+5000&#10;ব্যাংক = 150000&#10;➤ প্লাস + দিয়ে একাধিক এমাউন্ট সংখ্যা লিখুন৷ " class="ph-medium input-calc"></textarea>
+            <button type="button" class="plus-side-btn" onclick="addPlusToCalc('bikash')">+</button>
+          </div>
+        </div>
+
+        <div class="calc-field">
+          <label for="joma">জমা / অন্যান্য:</label>
+          <div class="calc-input-wrap">
+            <textarea id="joma" rows="5" wrap="soft" placeholder="জমা = 200000&#10;রেমিট্যান্স = 512500&#10;cash = 500000+8000" class="ph-medium input-calc"></textarea>
+            <button type="button" class="plus-side-btn" onclick="addPlusToCalc('joma')">+</button>
+          </div>
         </div>
       </div>
 
       <div class="calc-actions">
-        <button onclick="calculate()" class="btn btn-blue-soft ripple">হিসাব করুন</button>
+        <button onclick="calculate()" class="btn btn-blue-soft ripple">Result</button>
         <button onclick="clearAll()" class="btn btn-gray-soft ripple">Clear</button>
       </div>
 
-      <div class="summary-box">
-        <div class="summary-row">
-          <span id="totalBikash" class="text-main font-bold">মোট বিকাশ: 0</span>
-          <button onclick="copyNumber('totalBikash')" class="copy-mini copy-blue ripple">Copy</button>
+      <div class="mini-result-card">
+        <div class="mini-result-title">📌 Quick Result</div>
+
+        <div class="mini-result-row">
+          <span id="totalBikash" class="mini-result-text">বিকাশ/ব্যাংক = 0 Tk</span>
+          <button onclick="copyLineText('totalBikash')" class="mini-copy-btn ripple">Copy</button>
         </div>
-        <div class="summary-row">
-          <span id="totalJoma" class="text-main font-bold">মোট জমা: 0</span>
-          <button onclick="copyNumber('totalJoma')" class="copy-mini copy-green ripple">Copy</button>
+
+        <div class="mini-result-row">
+          <span id="totalJoma" class="mini-result-text">জমা = 0 Tk</span>
+          <button onclick="copyLineText('totalJoma')" class="mini-copy-btn ripple">Copy</button>
         </div>
-        <div class="summary-row">
-          <span id="finalResult" class="text-main font-extrabold">চূড়ান্ত মোট: 0</span>
-          <button onclick="copyNumber('finalResult')" class="copy-mini copy-purple ripple">Copy</button>
+
+        <div class="mini-result-row">
+          <span id="finalResult" class="mini-result-text">চুড়ান্ত = 0 Tk</span>
+          <button onclick="copyLineText('finalResult')" class="mini-copy-btn ripple">Copy</button>
         </div>
       </div>
+
+      <div class="print-result-box">
+        <div class="print-result-title">📋 Full Text Copy for Party</div>
+        <div class="print-result-sub">নিচের text এক ক্লিকে copy করে WhatsApp-এ paste করতে পারবেন।</div>
+        <div id="calcPrintText" class="print-result-text">Result দিলে এখানে party-কে দেওয়ার সুন্দর হিসাব text দেখাবে।</div>
+        <button type="button" onclick="copyCalcPrintText()" class="copy-print-btn ripple">📋 Full Text Copy</button>
+      </div>
     </section>
+
+    <div class="bottom-ad-wrap">
+      <div class="bottom-ad-box" id="bottomBannerAd">
+        
+      </div>
+    </div>
   </div>
 
   <div id="editModal" class="modal-backdrop">
     <div class="modal-card">
       <div class="modal-head">
-        <h3 class="text-base font-extrabold text-main">লাইন এডিট করুন</h3>
+        <h3 style="font-size:.92rem;font-weight:700;color:#334155;">লাইন এডিট করুন</h3>
       </div>
 
       <div class="modal-body">
         <textarea
           id="editModalInput"
           rows="5"
-          class="input-main"
-          style="resize:none;box-shadow:var(--shadow-sm);border:1px solid #d1d5db;border-radius:12px;padding:10px;width:100%"
+          wrap="soft"
+          style="resize:none;box-shadow:var(--shadow-sm);border:1px solid #d1d5db;border-radius:12px;padding:10px;width:100%;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;color:#334155;font-size:.86rem;line-height:1.35;font-weight:500;"
           placeholder="এখানে লাইন এডিট করুন"
         ></textarea>
       </div>
@@ -624,16 +985,18 @@ document.addEventListener("deviceready", function () {
   const results = $("results");
   const parseBtn = $("parseBtn");
   const clearBtn = $("clearBtn");
-  const copyBtn = $("copyBtn");
   const editModal = $("editModal");
   const editModalInput = $("editModalInput");
   const editModalCancel = $("editModalCancel");
   const editModalSave = $("editModalSave");
+
+  const hisabDateEl = $("hisabDate");
   const bikashEl = $("bikash");
   const jomaEl = $("joma");
   const totalBikashEl = $("totalBikash");
   const totalJomaEl = $("totalJoma");
   const finalResultEl = $("finalResult");
+  const calcPrintTextEl = $("calcPrintText");
 
   function pasteFromClipboard(){
     inputEl.focus();
@@ -680,8 +1043,21 @@ document.addEventListener("deviceready", function () {
   }
 
   function bnToEnDigits(str){
-    const map={'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
-    return String(str || '').replace(/[০-৯]/g, d=>map[d]);
+    const map = {
+      "\u09E6":"0",
+      "\u09E7":"1",
+      "\u09E8":"2",
+      "\u09E9":"3",
+      "\u09EA":"4",
+      "\u09EB":"5",
+      "\u09EC":"6",
+      "\u09ED":"7",
+      "\u09EE":"8",
+      "\u09EF":"9"
+    };
+    return String(str || '').replace(/[\u09E6-\u09EF]/g, function(d){
+      return map[d] || d;
+    });
   }
 
   function autoFixDigits(str){
@@ -696,6 +1072,10 @@ document.addEventListener("deviceready", function () {
 
   function formatNumber(n){
     return isNaN(n) ? "0" : Number(n).toLocaleString("en-US",{maximumFractionDigits:2});
+  }
+
+  function plainNumber(n){
+    return isNaN(n) ? "0" : String(Math.round(Number(n)));
   }
 
   function preprocessWhatsAppText(input){
@@ -768,43 +1148,43 @@ document.addEventListener("deviceready", function () {
     return map[reason] || reason || 'মিসম্যাচ';
   }
 
-function parsePhoneOccurrences(input){
-  const src = String(input || '');
-  const matches = [];
+  function parsePhoneOccurrences(input){
+    const src = String(input || '');
+    const matches = [];
 
-  const re = /(?:\+?880|00880|880|0)[\s.-]*1[\s.-]*[3-9](?:[\s.-]*\d){8}/g;
-  let m;
-  while((m = re.exec(src)) !== null){
-    const digitsOnly = m[0].replace(/\D/g, '');
-    let local = digitsOnly;
-    if(local.startsWith('880')) local = local.slice(3);
-    else if(local.startsWith('88')) local = local.slice(2);
+    const re = /(?:\+?880|00880|880|0)[\s.-]*1[\s.-]*[3-9](?:[\s.-]*\d){8}/g;
+    let m;
+    while((m = re.exec(src)) !== null){
+      const digitsOnly = m[0].replace(/\D/g, '');
+      let local = digitsOnly;
+      if(local.startsWith('880')) local = local.slice(3);
+      else if(local.startsWith('88')) local = local.slice(2);
 
-    if(local.length !== 11 && local.length !== 10) continue;
+      if(local.length !== 11 && local.length !== 10) continue;
 
-    matches.push({
-      raw: m[0],
-      index: m.index,
-      end: m.index + m[0].length
-    });
+      matches.push({
+        raw: m[0],
+        index: m.index,
+        end: m.index + m[0].length
+      });
+    }
+
+    return { src, matches };
   }
 
-  return { src, matches };
-}
+  function canonicalPhone(raw){
+    let s = String(raw || '').trim();
+    if(/^O/i.test(s)) s = '0' + s.slice(1);
 
-function canonicalPhone(raw){
-  let s = String(raw || '').trim();
-  if(/^O/i.test(s)) s = '0' + s.slice(1);
+    s = s.replace(/[\s\-\.]/g, '');
 
-  s = s.replace(/[\s\-\.]/g, '');
+    if(s.startsWith('+880')) s = s.slice(4);
+    else if(s.startsWith('0088')) s = s.slice(4);
+    else if(s.startsWith('880')) s = s.slice(3);
+    else if(s.startsWith('88')) s = s.slice(2);
 
-  if(s.startsWith('+880')) s = s.slice(4);
-  else if(s.startsWith('0088')) s = s.slice(4);
-  else if(s.startsWith('880')) s = s.slice(3);
-  else if(s.startsWith('88')) s = s.slice(2);
-
-  return s;
-}
+    return s;
+  }
 
   function buildParsedItem(rawText, phone, amount){
     return { raw: rawText, lines: compactDisplayLine(rawText), phone, amount };
@@ -979,7 +1359,7 @@ function canonicalPhone(raw){
 
   function render(){
     if(items.length===0 && misses.length===0 && highCheckIssues.length===0 && !highCheckSuccessMsg && !editVerifyFailMsg){
-      results.innerHTML='<p class="force-black font-bold">কোনো আইটেম পাওয়া যায়নি — Result চাপুন।</p>';
+      results.innerHTML='<p class="force-black" style="font-weight:500">কোনো আইটেম পাওয়া যায়নি — Result চাপুন।</p>';
       return;
     }
 
@@ -996,12 +1376,12 @@ function canonicalPhone(raw){
           <div class="item-box">
             <div ondblclick="editLine(${idx})" style="cursor:pointer">
               <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">
-                <div class="font-extrabold text-xs">আইটেম ${idx+1}</div>
-                <div style="flex-shrink:0;text-align:right;font-weight:800;font-size:16px;line-height:1">
+                <div style="font-weight:600;font-size:.72rem">আইটেম ${idx+1}</div>
+                <div style="flex-shrink:0;text-align:right;font-weight:600;font-size:14px;line-height:1">
                   ৳ ${formatNumber(it.amount)}
                 </div>
               </div>
-              <div style="width:100%;white-space:normal;word-break:break-word;font-size:14px;font-weight:800;line-height:1.28">
+              <div style="width:100%;white-space:normal;word-break:break-word;font-size:12.5px;font-weight:500;line-height:1.22">
                 ${escapeHtml(compactDisplayLine(it.raw))}
               </div>
             </div>
@@ -1015,8 +1395,8 @@ function canonicalPhone(raw){
     if(highCheckSuccessMsg){
       html += `<div class="mt-3">
         <div class="status-ok">
-          <div class="font-extrabold text-sm">✅ ${escapeHtml(highCheckSuccessMsg)}</div>
-          <div class="text-xs mt-1 font-bold">সবকিছু ঠিক আছে।</div>
+          <div style="font-weight:600;font-size:.82rem">✅ ${escapeHtml(highCheckSuccessMsg)}</div>
+          <div style="font-size:.7rem;margin-top:4px;font-weight:500">সবকিছু ঠিক আছে।</div>
         </div>
       </div>`;
     }
@@ -1024,24 +1404,24 @@ function canonicalPhone(raw){
     if(editVerifyFailMsg){
       html += `<div class="mt-3">
         <div class="status-fail">
-          <div class="font-extrabold text-sm">❌ ${escapeHtml(editVerifyFailMsg)}</div>
-          <div class="text-xs mt-1 font-bold">সব warning ঠিক হলে তবেই সফলভাবে মিলেছে দেখাবে।</div>
+          <div style="font-weight:600;font-size:.82rem">❌ ${escapeHtml(editVerifyFailMsg)}</div>
+          <div style="font-size:.7rem;margin-top:4px;font-weight:500">সব warning ঠিক হলে তবেই সফলভাবে মিলেছে দেখাবে।</div>
         </div>
       </div>`;
     }
 
     if(misses.length){
       html += `<div class="mt-3">
-        <div class="font-extrabold text-red mb-1 text-sm">মিসম্যাচ ⚠️ (${misses.length})</div>
+        <div style="font-weight:600;color:#b91c1c;margin-bottom:4px;font-size:.82rem">মিসম্যাচ ⚠️ (${misses.length})</div>
         <ul class="space-y-2">`;
       misses.forEach((miss,idx)=>{
         html += `<li class="mismatch-box">
           <div style="flex:1;word-break:break-all">
-            <span class="text-red font-extrabold" style="margin-right:4px">(${miss.idx}) ✖</span>${escapeHtml(miss.line)}
-            <div class="text-xs mt-1 text-red-soft font-bold">${escapeHtml(banglaReason(miss.reason))}</div>
+            <span style="color:#b91c1c;font-weight:600;margin-right:4px">(${miss.idx}) ✖</span>${escapeHtml(miss.line)}
+            <div style="font-size:.7rem;margin-top:4px;color:#b91c1c;font-weight:500">${escapeHtml(banglaReason(miss.reason))}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <button onclick="editMiss(${idx})" class="copy-mini ripple" style="background:#e5e7eb;color:#111827">✏️ Edit</button>
+            <button onclick="editMiss(${idx})" class="mini-copy-btn ripple" style="background:linear-gradient(90deg,#64748b,#475569)">✏️ Edit</button>
           </div>
         </li>`;
       });
@@ -1049,7 +1429,7 @@ function canonicalPhone(raw){
     }
 
     html += `<div class="mt-3 force-black">
-      <div class="font-extrabold text-sm mb-1">ধাপে ধাপে যোগ:</div>
+      <div style="font-weight:600;font-size:.82rem;margin-bottom:4px">ধাপে ধাপে যোগ:</div>
       <div class="inline-scroll-wrap">`;
 
     let running = 0;
@@ -1065,15 +1445,15 @@ function canonicalPhone(raw){
 
     html += `</div></div>`;
 
-    html += `<div class="mt-3 force-black space-y-2">
-      <div class="font-bold text-sm">মোট: ${formatNumber(parsedTotal)} ৳</div>
-      <div class="font-bold text-sm">Extra Add: ${formatNumber(extraTotal)} ৳</div>
+    html += `<div class="mt-3 force-black">
+      <div style="font-weight:500;font-size:.78rem">মোট: ${formatNumber(parsedTotal)} ৳</div>
+      <div style="font-weight:500;font-size:.78rem;margin-top:4px">Extra Add: ${formatNumber(extraTotal)} ৳</div>
     </div>`;
 
-    html += `<div class="text-xl font-extrabold mt-3" style="color:#15803d;background:#f0fdf4;padding:8px 12px;border-radius:12px;box-shadow:var(--shadow-sm)">
+    html += `<div style="font-size:.92rem;font-weight:600;margin-top:10px;color:#15803d;background:#f0fdf4;padding:9px 10px;border-radius:11px;box-shadow:var(--shadow-sm)">
       চূড়ান্ত মোট: ${formatNumber(finalTotal)} ৳
       <button onclick="copyTotalNow(${finalTotal})"
-      class='copy-mini ripple' style="margin-left:8px;background:#f3e8ff;color:#581c87">মোট কপি</button>
+      class='mini-copy-btn ripple' style="margin-left:8px;background:linear-gradient(90deg,#8b5cf6,#6d28d9)">মোট কপি</button>
     </div>`;
 
     results.innerHTML = html;
@@ -1128,59 +1508,226 @@ function canonicalPhone(raw){
     restorePageScroll(scrollPos);
   };
 
-  if(copyBtn) copyBtn.onclick = ()=>{
-    const parsedTotal = items.reduce((s,it)=>s+(Number(it.amount)||0),0);
-    const extraTotal = parseExtraInputValue();
-    const total = parsedTotal + extraTotal;
-    navigator.clipboard.writeText(String(total))
-      .then(()=>alert("মোট কপি হয়েছে: " + formatNumber(total)))
-      .catch(()=>alert("কপি করা যায়নি — অনুমতি দিন"));
-  };
-
   extraInputEl.addEventListener("input", render);
   toggleTotal.addEventListener('change', render);
 
   function copyTotalNow(total){
-    navigator.clipboard.writeText(String(total))
-      .then(()=>alert("কপি হয়েছে: " + formatNumber(total) + " ৳"))
-      .catch(()=>alert("কপি করা যায়নি"));
+    copyAnyText(String(total), "কপি হয়েছে: " + formatNumber(total) + " ৳");
   }
 
-  function _normalize(v){ return (v || "").replace(/[.,\s]/g, ""); }
-  function sumInput(v){
-    v = _normalize(v);
-    if(!v) return 0;
-    return v.split('+').filter(Boolean).reduce((a, n) => a + (parseInt(n, 10) || 0), 0);
+  function getTodayDateText(){
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  function ensureDateDefault(){
+    if(!hisabDateEl.value.trim()){
+      hisabDateEl.value = getTodayDateText();
+    }
+  }
+
+  function normalizeCalcText(v){
+    return normalizeBasic(v || "")
+      .replace(/[，]/g, ",")
+      .replace(/[＋]/g, "+")
+      .replace(/[=ঃ:।]/g, "=");
+  }
+
+  function extractCalcNumbers(text){
+    let s = normalizeCalcText(text);
+    s = s.replace(/,/g, "");
+    const nums = s.match(/\d+/g) || [];
+    return nums.map(n => parseInt(n,10)).filter(n => !isNaN(n));
+  }
+
+  function cleanCalcName(line, defaultName){
+    let s = normalizeCalcText(line || "").trim();
+    s = s.replace(/[=]/g, " ");
+    s = s.replace(/\d[\d,+\s]*/g, " ");
+    s = s.replace(/\s+/g, " ").trim();
+    return s || defaultName;
+  }
+
+  function parseCalcLines(text, defaultName){
+    const raw = normalizeCalcText(text || "");
+    const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+
+    const entries = [];
+    let total = 0;
+
+    lines.forEach(line => {
+      const nums = extractCalcNumbers(line);
+      const lineTotal = nums.reduce((a,b)=>a+b,0);
+
+      if(lineTotal === 0) return;
+
+      const name = cleanCalcName(line, defaultName);
+
+      entries.push({
+        name,
+        total: lineTotal,
+        raw: line
+      });
+
+      total += lineTotal;
+    });
+
+    return { entries, total };
+  }
+
+  function buildPartySectionText(data, defaultName){
+    let text = "";
+
+    if(!data.entries.length){
+      text += `${defaultName} = 0\n`;
+      text += `= 0 Tk`;
+      return text;
+    }
+
+    data.entries.forEach(item => {
+      text += `${item.name} = ${plainNumber(item.total)}\n`;
+    });
+
+    text += `= ${plainNumber(data.total)} Tk`;
+
+    return text;
+  }
+
+  function buildPartyText(bikashData, jomaData, finalTotal){
+    ensureDateDefault();
+    const dateText = hisabDateEl.value.trim() || getTodayDateText();
+
+    const topBar = "______________";
+    const dateBar = `▫️ ${dateText}▫️`;
+
+    const bikashText = buildPartySectionText(bikashData, "বিকাশ");
+    const jomaText = buildPartySectionText(jomaData, "জমা");
+
+    return `${topBar}
+
+
+
+${dateBar}
+
+
+${bikashText}
+
+
+
+${jomaText}
+
+
+
+মোট চুড়ান্ত = ${plainNumber(finalTotal)} Tk
+
+
+${topBar}`;
   }
 
   function calculate(){
-    bikashEl.value = _normalize(bikashEl.value).replace(/[^\d+]/g, "");
-    jomaEl.value   = _normalize(jomaEl.value).replace(/[^\d+]/g, "");
-    const tB = sumInput(bikashEl.value);
-    const tJ = sumInput(jomaEl.value);
-    totalBikashEl.innerText = "মোট বিকাশ: " + tB;
-    totalJomaEl.innerText   = "মোট জমা: " + tJ;
-    finalResultEl.innerText = "চূড়ান্ত মোট: " + (tB - tJ);
+    ensureDateDefault();
+
+    const bikashData = parseCalcLines(bikashEl.value, "বিকাশ");
+    const jomaData = parseCalcLines(jomaEl.value, "জমা");
+
+    const tB = bikashData.total;
+    const tJ = jomaData.total;
+
+    const finalTotal = tJ - tB;
+
+    totalBikashEl.innerText = "বিকাশ/ব্যাংক = " + formatNumber(tB) + " Tk";
+    totalJomaEl.innerText = "জমা = " + formatNumber(tJ) + " Tk";
+    finalResultEl.innerText = "চুড়ান্ত = " + formatNumber(finalTotal) + " Tk";
+
+    calcPrintTextEl.innerText = buildPartyText(bikashData, jomaData, finalTotal);
   }
 
   function clearAll(){
     const scrollPos = savePageScroll();
+
+    hisabDateEl.value = getTodayDateText();
     bikashEl.value = "";
-    jomaEl.value   = "";
-    totalBikashEl.innerText = "মোট বিকাশ: 0";
-    totalJomaEl.innerText   = "মোট জমা: 0";
-    finalResultEl.innerText = "চূড়ান্ত মোট: 0";
+    jomaEl.value = "";
+
+    totalBikashEl.innerText = "বিকাশ/ব্যাংক = 0 Tk";
+    totalJomaEl.innerText = "জমা = 0 Tk";
+    finalResultEl.innerText = "চুড়ান্ত = 0 Tk";
+
+    calcPrintTextEl.innerText = "Result দিলে এখানে party-কে দেওয়ার সুন্দর হিসাব text দেখাবে।";
+
     restorePageScroll(scrollPos);
   }
 
-  function copyNumber(id){
-    const text = $(id).innerText || "";
-    const parts = text.split(':');
-    const number = (parts[1] || "").trim();
-    navigator.clipboard.writeText(number);
-    alert("কপি হয়েছে: " + number);
+  function addPlusToCalc(id){
+    const el = $(id);
+    if(!el) return;
+
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(end);
+
+    el.value = before + "+" + after;
+    el.focus();
+
+    const pos = start + 1;
+    el.setSelectionRange(pos, pos);
   }
 
+  function copyCalcPrintText(){
+    const text = (calcPrintTextEl?.innerText || "").trim();
+
+    if(!text || text === "Result দিলে এখানে party-কে দেওয়ার সুন্দর হিসাব text দেখাবে।"){
+      alert("আগে Result দিন");
+      return;
+    }
+
+    copyAnyText(text, "Full Text Copy হয়েছে");
+  }
+
+  function copyLineText(id){
+    const el = $(id);
+    const text = (el?.innerText || "").trim();
+    if(!text) return;
+
+    copyAnyText(text, "কপি হয়েছে");
+  }
+
+  function copyAnyText(text, successMsg){
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text)
+        .then(()=>alert(successMsg || "Copy হয়েছে"))
+        .catch(()=>fallbackCopyText(text, successMsg));
+    }else{
+      fallbackCopyText(text, successMsg);
+    }
+  }
+
+  function fallbackCopyText(text, successMsg){
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    temp.setAttribute("readonly", "");
+    temp.style.position = "fixed";
+    temp.style.left = "-9999px";
+    temp.style.top = "0";
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+
+    try{
+      document.execCommand("copy");
+      alert(successMsg || "Copy হয়েছে");
+    }catch(e){
+      alert("Copy করা যায়নি");
+    }
+
+    document.body.removeChild(temp);
+  }
+
+  ensureDateDefault();
   render();
 </script>
 </body>

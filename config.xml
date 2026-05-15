@@ -1,4 +1,4 @@
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" id="com.saiftypo.bkscalc" version="2.4.3" android-versionCode="9">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" id="com.saiftypo.bkscalc" version="2.5.3" android-versionCode="10">
 <name>Bkcalc</name>
 <description>Smart calculator app</description>
 <author email="mdsaifuddintrd321st@gmail.com" href="https://github.com/yourgithub"> Bkcalc </author>

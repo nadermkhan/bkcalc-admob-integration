@@ -6,8 +6,8 @@
 }
 
 :root{
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
 
 html.theme-dark{
@@ -99,10 +99,8 @@ html.theme-dark .app{
   background:#000000 !important;
 }
 
-
-
 html.theme-dark .header{
-  background:#000000; 
+  background:#000000;
 }
 
 html.theme-light .header .icon-btn{
@@ -111,10 +109,6 @@ html.theme-light .header .icon-btn{
 
 html.theme-dark .header .icon-btn{
   color:#ffffff;
-}
-
-.grid{
-  padding-bottom:2px;
 }
 
 .app{
@@ -177,6 +171,7 @@ html.theme-dark .header .icon-btn{
   min-width:0;
   display:flex;
   align-items:center;
+  justify-content:center;
 }
 
 .page-btn{
@@ -257,72 +252,97 @@ html.theme-dark .header .icon-btn{
   background:var(--bg);
 }
 
+/* INPUT AREA */
 .expression-wrap{
   min-height:0;
+  height:100%;
   overflow:hidden;
-  display:flex;
-  align-items:flex-end;
+  display:block;
   position:relative;
   padding-top:2px;
 }
 
+/* Premium calculator typing area */
 .expression-view{
   width:100%;
   height:100%;
   overflow-y:auto;
   overflow-x:hidden;
-  text-align:right;
+
+  text-align:right !important;
+  direction:ltr;
+  unicode-bidi:plaintext;
+
   font-family:inherit;
   font-size:48px;
   font-weight:500;
-  line-height:1.05;
+  line-height:1.12;
   color:var(--muted);
-  padding:4px 0 2px;
-  scroll-behavior:auto;
-  -webkit-overflow-scrolling:touch;
+
+  padding:45px 0 18px !important;
+
   white-space:normal;
-  word-break:break-all;
-  overflow-wrap:anywhere;
+  word-break:normal !important;
+  overflow-wrap:normal !important;
+
   user-select:text;
   -webkit-user-select:text;
   -webkit-touch-callout:default;
   -webkit-text-size-adjust:none;
-  touch-action:manipulation;
+
+  touch-action:pan-y;
   cursor:text;
-  position:relative;
+  caret-color:var(--operator);
+
   scrollbar-width:none;
   -ms-overflow-style:none;
-  outline: none !important;
-  caret-color: transparent;
-  padding-bottom: 25px !important;
+  -webkit-user-modify:read-write-plaintext-only;
+
+  border:none !important;
+  outline:none !important;
+  box-shadow:none !important;
+  background:transparent !important;
+  -webkit-appearance:none;
+  appearance:none;
+
+  overflow-anchor:none;
+  overscroll-behavior:contain;
 }
 
-.expr-line{
-  display:block;
-  width:100%;
-  text-align:right;
+.expression-view::-webkit-scrollbar{
+  display:none;
 }
 
+.expression-view:focus,
+.expression-view:focus-visible,
+.expression-view:active{
+  border:none !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+
+.expression-view:empty::before{
+  content:"\200b";
+}
+
+/* FINAL: 10200+ একসাথে থাকবে, মাঝখানে কাটবে না */
 .expr-token{
   display:inline-block;
   white-space:nowrap;
+  vertical-align:baseline;
 }
 
-.custom-caret{
+.expr-num,
+.expr-fn,
+.expr-op{
   display:inline-block;
-  width:0;
-  border-left:2px solid var(--text);
-  height:0.85em;
-  vertical-align:-0.05em;
-  margin:0 1px;
-  animation:caret-blink 1s steps(2,start) infinite;
+  white-space:nowrap;
+  vertical-align:baseline;
 }
 
-@keyframes caret-blink{
-  to{ border-color:transparent; }
+.expr-break{
+  display:inline;
 }
-
-
 
 .result-box{
   min-height:clamp(40px, 6dvh, 52px);
@@ -369,26 +389,24 @@ html.theme-dark .header .icon-btn{
 }
 
 .copy-icon{
-  font-size:18px;
+  font-size:25px;
   color:var(--operator);
   flex-shrink:0;
   user-select:none;
   -webkit-user-select:none;
   -webkit-touch-callout:none;
-  /* Make the color transition twice as fast */
-  transition: color 0.1s ease;
+  transition:color 0.1s ease;
 }
 
-.result-copy.copied .copy-icon {
-  color: var(--operator-soft);
-  /* Make the pop animation twice as fast */
-  animation: pop-icon 0.15s ease-out;
+.result-copy.copied .copy-icon{
+  color:var(--operator-soft);
+  animation:pop-icon 0.15s ease-out;
 }
 
-@keyframes pop-icon {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.35); }
-  100% { transform: scale(1); }
+@keyframes pop-icon{
+  0%{ transform:scale(1); }
+  50%{ transform:scale(1.35); }
+  100%{ transform:scale(1); }
 }
 
 .action-bar{
@@ -407,13 +425,6 @@ html.theme-dark .header .icon-btn{
   line-height:1;
   font-weight:800;
   padding-left:8px;
-}
-
-.action-link{
-  border:none;
-  background:transparent;
-  cursor:pointer;
-  padding:0;
 }
 
 .sci-open-btn{
@@ -463,6 +474,7 @@ html.theme-dark .header .icon-btn{
   grid-template-rows:repeat(5,1fr);
   gap:2px;
   background:var(--line);
+  padding-bottom:2px;
 }
 
 .btn{
@@ -512,28 +524,10 @@ html.theme-dark .header .icon-btn{
   font-size:clamp(30px, 7.5vw, 50px);
 }
 
-.banner{
-  position:relative;
-  background:var(--bg);
-  border-top:1px solid var(--line);
-  color:var(--muted);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  font-size:11px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  padding:0 8px;
-  overflow:hidden;
-  -webkit-user-select:none;
-  user-select:none;
-  -webkit-touch-callout:none;
-}
-
 .toast{
   position:fixed;
   left:50%;
-  bottom:calc(78px + var(--safe-bottom));
+  bottom:calc(98px + var(--safe-bottom));
   transform:translateX(-50%) translateY(10px);
   background:rgba(17,24,39,.96);
   color:#fff;
@@ -700,6 +694,7 @@ html.theme-dark .header .icon-btn{
       46px
       minmax(270px, 44dvh);
   }
+
   .result{
     font-size:42px;
   }
@@ -709,6 +704,7 @@ html.theme-dark .header .icon-btn{
   .sci-drawer{
     width:82vw;
   }
+
   .sci-btn{
     min-height:46px;
     font-size:12px;
